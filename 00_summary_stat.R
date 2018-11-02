@@ -221,4 +221,6 @@ xvars <- c("Gender1", "Gender2", "Gender3", "Gender4", "yeschild",
 wt.table1 <- svydesign(ids = ~ 1, data = data02, weights = ~ Final_weights)
 wt.table2 <- svyCreateTableOne(vars = xvars, strata ="Group", data = wt.table1)
 print(wt.table2, test=TRUE, smd = TRUE)
+# https://cran.r-project.org/web/packages/tableone/vignettes/introduction.html
+# oneway.test() for continous variables (with equal variance assumption, i.e., regular ANOVA)
 

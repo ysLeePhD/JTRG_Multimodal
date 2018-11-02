@@ -58,7 +58,8 @@ pct <- ddply(df, .(group), plyr::summarize, pct=round(wtcase/sum(wtcase)*100, 1)
 df <- data.frame(df, pct$pct)
 df$pct <- paste0(as.character(df$pct), "%")
 df$pct.pct <- NULL
-df
+
+
 
 # https://stackoverflow.com/questions/9563368/create-stacked-barplot-where-each-stack-is-scaled-to-sum-to-100
 ggplot(df,aes(x = group, y = wtcase, fill = Scale)) + 
@@ -88,3 +89,21 @@ wtsummary2 <- function(x) {
 }
 
 wtsummary2(1)
+
+
+# install.packages("gdata")
+# install.packages("mice")
+# install.packages("weights")
+
+library(gdata)
+library(lattice)
+library(Formula)
+library(Hmisc)
+library(Formula)
+library(ggplot2)
+library(mice)
+library(weights)
+
+colnames(data11)
+# https://cran.r-project.org/web/packages/weights/weights.pdf
+wtd.chi.sq(data11$Group, data11[, 1], weight=data11$Final_weights, mean1=FALSE)
