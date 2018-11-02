@@ -61,7 +61,7 @@ data01$HHSize <- data01$K13_HHSize
 
 data01$ncar <- data01$H4_NumCar
 data01$carpdr <- ifelse(data01$K15_numdrivers>0, data01$H4_NumCar/data01$K15_numdrivers, 0)
-data01$VMDpw <- data01$H11car_VMT
+data01$VMDpw <- ifelse(data01$H11car_VMT>=0, data01$H11car_VMT, 0) 
 colnames(data01)
 
 summary(data01$F1_commutedest)
@@ -77,21 +77,75 @@ data01$commute_pmode <- ifelse(is.na(data01$F7school_pmode)==FALSE, data01$F7sch
 data01$commute_pmode <- ifelse(data01$commute_pmode<0, NA, data01$commute_pmode)
 table(data01$commute_pmode)
 
-data01$commute_drive   <- ifelse(data01$commute_pmode==1, 1, 0) 
-data01$commute_carpool <- ifelse(data01$commute_pmode==1, 1, 0) 
-data01$commute_motor   <- ifelse(data01$commute_pmode==1, 1, 0) 
-data01$commute_shuttle <- ifelse(data01$commute_pmode==1, 1, 0) 
-data01$commute_transit <- ifelse(data01$commute_pmode==1, 1, 0) 
-data01$commute_ridehail<- ifelse(data01$commute_pmode==1, 1, 0) 
-data01$commute_bike    <- ifelse(data01$commute_pmode==1, 1, 0) 
-data01$commute_walk    <- ifelse(data01$commute_pmode==1, 1, 0) 
-data01$commute_other   <- ifelse(data01$commute_pmode==1, 1, 0) 
+data01$lastcommute_drive   <- ifelse(data01$commute_pmode==1, 1, 0) 
+data01$lastcommute_carpool <- 0 
+data01$lastcommute_carpool <- ifelse(data01$commute_pmode==2, 1, 0) 
+data01$lastcommute_carpool <- ifelse(data01$commute_pmode==3, 1, data01$lastcommute_carpool) 
+data01$lastcommute_motor   <- ifelse(data01$commute_pmode==4, 1, 0) 
+data01$lastcommute_shuttle <- ifelse(data01$commute_pmode==5, 1, 0) 
+data01$lastcommute_transit <- 0 
+data01$lastcommute_transit <- ifelse(data01$commute_pmode==6, 1, 0) 
+data01$lastcommute_transit <- ifelse(data01$commute_pmode==7, 1, data01$lastcommute_transit) 
+data01$lastcommute_transit <- ifelse(data01$commute_pmode==8, 1, data01$lastcommute_transit) 
+data01$lastcommute_ridehail<- ifelse(data01$commute_pmode==10, 1, 0) 
+data01$lastcommute_bike    <- ifelse(data01$commute_pmode==11, 1, 0) 
+data01$lastcommute_walk    <- 0 
+data01$lastcommute_walk    <- ifelse(data01$commute_pmode==12, 1, 0) 
+data01$lastcommute_walk    <- ifelse(data01$commute_pmode==13, 1, data01$lastcommute_walk) 
+data01$lastcommute_other   <- 0 
+data01$lastcommute_other   <- ifelse(data01$commute_pmode==9, 1, 0) # taxi
+data01$lastcommute_other   <- ifelse(data01$commute_pmode==14, 1, data01$lastcommute_other) 
 
+modefreq <- function(x){
+  a <- NA 
+  for (i in 1:length(x)){
+    if (is.na(x[i])==TRUE) {
+      a[i] <- 0
+    } else if (x[i]<3) {
+      a[i] <- 0 
+    } else if (x[i]==3) {
+      a[i] <- 0.5 
+    } else if (x[i]==4) {
+      a[i] <- 2
+    } else if (x[i]==5) {
+      a[i] <- 6
+    } else if (x[i]==6) {
+      a[i] <- 14
+    } else if (x[i]==7) {
+      a[i] <- 20
+    }
+  }
+  return(a) 
+}
 
+data01$commute_car <- modefreq(data01$F6school_Drivealone) + modefreq(data01$F6school_CarpoolD) + modefreq(data01$F6school_CarpoolP) + 
+  modefreq(data01$F6school_Moto) + modefreq(data01$F6work_Drivealone) + modefreq(data01$F6work_CarpoolD) + 
+  modefreq(data01$F6work_CarpoolP) + modefreq(data01$F6work_Moto) 
+data01$commute_transit <- modefreq(data01$F6school_Bus) + modefreq(data01$F6school_LR) + modefreq(data01$F6school_Train) + 
+  modefreq(data01$F6work_Bus) + modefreq(data01$F6work_LR) + modefreq(data01$F6work_Train)
+data01$commute_active <- modefreq(data01$F6school_Bike) + modefreq(data01$F6school_Skateboard) + modefreq(data01$F6school_Walk) + 
+  modefreq(data01$F6work_Bike) + modefreq(data01$F6work_Skateboard) + modefreq(data01$F6work_Walk)
+data01$commute_ridehail <- modefreq(data01$F6school_Uber) + modefreq(data01$F6work_Uber)
+data01$commute_other <- modefreq(data01$F6school_Shuttle) + modefreq(data01$F6school_Taxi) + modefreq(data01$F6school_Other) + 
+  modefreq(data01$F6work_Shuttle) + modefreq(data01$F6work_Taxi) + modefreq(data01$F6work_Other)
+
+data01$leisure_car <- modefreq(data01$F14leisure_Drivealone) + modefreq(data01$F14leisure_CarpoolD) + 
+  modefreq(data01$F14leisure_CarpoolP) + modefreq(data01$F14leisure_Carsharing) + modefreq(data01$F14leisure_Moto) 
+data01$leisure_transit <- modefreq(data01$F14leisure_Bus) + modefreq(data01$F14leisure_LR) + modefreq(data01$F14leisure_Train)
+data01$leisure_active <- modefreq(data01$F14leisure_Bike) + modefreq(data01$F14leisure_Skateboard) + modefreq(data01$F14leisure_Walk)
+data01$leisure_ridehail <- modefreq(data01$F14leisure_Uber)
+data01$leisure_other <- modefreq(data01$F14leisure_Taxi) + modefreq(data01$F14leisure_Other) 
+  
+  
 # Create a weighted summary table 
 
 data02 <- data01[, c("PID", "Group", "Gender", "yeschild", "hhincome", "AgeGroup", 
-                     "Hispanic", "Race", "Education", "HHSize", "Final_weights")]
+                     "Hispanic", "Race", "Education", "HHSize", "ncar", "carpdr", "VMDpw", 
+                     "lastcommute_drive", "lastcommute_carpool", "lastcommute_motor", "lastcommute_shuttle", 
+                     "lastcommute_transit", "lastcommute_ridehail", "lastcommute_bike", "lastcommute_walk", 
+                     "lastcommute_other", "commute_car", "commute_transit", "commute_active", "commute_ridehail", 
+                     "commute_other", "leisure_car", "leisure_transit", "leisure_active", "leisure_ridehail", "leisure_other", 
+                     "Final_weights")]
 
 sapply(data02, class)
 
@@ -157,7 +211,12 @@ xvars <- c("Gender1", "Gender2", "Gender3", "Gender4", "yeschild",
            "AgeGroup1", "AgeGroup2", "AgeGroup3", "AgeGroup4", "Hispanic", 
            "Race1", "Race2", "Race3", "Race4", "Race5", 
            "Education1", "Education2", "Education3", "Education4", "Education5", 
-           "Education6", "Education7", "Education8", "HHSize")
+           "Education6", "Education7", "Education8", "HHSize", 
+           "ncar", "carpdr", "VMDpw", 
+           "lastcommute_drive", "lastcommute_carpool", "lastcommute_motor", "lastcommute_shuttle", 
+           "lastcommute_transit", "lastcommute_ridehail", "lastcommute_bike", "lastcommute_walk", 
+           "lastcommute_other", "commute_car", "commute_transit", "commute_active", "commute_ridehail", 
+           "commute_other", "leisure_car", "leisure_transit", "leisure_active", "leisure_ridehail", "leisure_other")
 
 wt.table1 <- svydesign(ids = ~ 1, data = data02, weights = ~ Final_weights)
 wt.table2 <- svyCreateTableOne(vars = xvars, strata ="Group", data = wt.table1)
