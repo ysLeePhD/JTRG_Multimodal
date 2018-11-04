@@ -220,7 +220,35 @@ xvars <- c("Gender1", "Gender2", "Gender3", "Gender4", "yeschild",
 
 wt.table1 <- svydesign(ids = ~ 1, data = data02, weights = ~ Final_weights)
 wt.table2 <- svyCreateTableOne(vars = xvars, strata ="Group", data = wt.table1)
-print(wt.table2, test=TRUE, smd = TRUE)
+a <- print(wt.table2, test=TRUE, smd = TRUE)
+b <- data.frame(a)
+b$vars <- rownames(b)
+
+m1 <- as.numeric(substr(as.character(b$IndMill), 1, 7))
+sd1 <- as.numeric(substr(as.character(b$IndMill), 9, nchar(as.character(b$IndMill))-1))
+m2 <- as.numeric(substr(as.character(b$DepMill), 1, 7))
+sd2 <- as.numeric(substr(as.character(b$DepMill), 9, nchar(as.character(b$DepMill))-1))
+m3 <- as.numeric(substr(as.character(b$GenXer), 1, 7))
+sd3 <- as.numeric(substr(as.character(b$GenXer), 9, nchar(as.character(b$GenXer))-1))
+vars <- c("n", "Male", "Female", "Transgender", "Decline to answer", "Presence of children", "Prefer not to answer", 
+          "Less than $20,000", "$20,001 to $40,000", "$40,001 to $60,000", "$60,001 to $80,000", 
+          "$80,001 to $100,000", "$100,001 to $120,000", "$120,000 to $140,000", "$140,001 to $160,000", 
+          "More than $160,000", 
+          "Younger millennials(18-26)", "Older millennials(27-34)", "Younger Generation X(35-43)", 
+          "Older Generation X(44-50)", "Hispanic", "Asian/Pacific Islander", "White/Caucasian", 
+          "Black/African American", "American Indian/Native American", "Ohter/multi-racial", 
+          "Prefer not to answer", "Some grade/high school", "High school/GED", "Some college/technical school", 
+          "Associate's degree", "Bachelor's degree", "Graduate degree", "Professional degree", 
+          "Household size", "# of household vehicles", "Vehicles per driver", "Weekly VMD",
+          "Drive alone", "Carpool", "Motorcycle or motor-scooter", "Work-/School-provided shuttle", 
+          "Public transit", "Uber/Lyft (on-demand ride services)", "Bike or e-bike", 
+          "Walk or skateboard", "Other", "Monthly commutes by cars", "Monthly commutes by public transit", 
+          "Monthly commutes by active modes", "Monthly commutes by ride services", "Monthly commutes by others", 
+          "Monthly leiusre by cars", "Monthly leisure by public transit", "Monthly leisure by active modes", 
+          "Monthly leisure by ride services", "Monthly leisure by others")
+df <- data.frame(vars, m1, sd1, m2, sd2, m3, sd3, b$p) 
+rownames(df) <- NULL
+write.csv(df, file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/wtsummary.csv")
 # https://cran.r-project.org/web/packages/tableone/vignettes/introduction.html
 # oneway.test() for continous variables (with equal variance assumption, i.e., regular ANOVA)
 

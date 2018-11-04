@@ -17,6 +17,7 @@ data11$Group <- ifelse(data11$Age>=35,                          3, data11$Group)
 data11$Group <- factor(data11$Group, labels=c("IndMill", "DepMill", "GenXer"), ordered=TRUE)
 table(data11$Group)
 
+
 library(dplyr)
 
 # Calculate percentages and label positions
@@ -99,7 +100,6 @@ library(gdata)
 library(lattice)
 library(Formula)
 library(Hmisc)
-library(Formula)
 library(ggplot2)
 library(mice)
 library(weights)
