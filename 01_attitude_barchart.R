@@ -4,7 +4,7 @@ library(foreign)
 data00 <- read.csv(file="M:/Millennial_CA/02_raw_data/11_latest_update/GenY_Syntax6_Step1_temp.csv")
 
 colnames(data00)
-data11 <- data00[, c(1, 37, 33, 7, 57, 19, 53, 116, 799, 674)]
+data11 <- data00[, c(1, 7:34, 36:47, 49:60, 584:597, 799, 116, 674)]
 colnames(data11)
 
 data11$PID <- data11$ï..PID
@@ -50,26 +50,42 @@ wtsummary <- function(x){
   ))
 }
 
+
+sent00 <- read.csv(file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/att_sentences.csv")
+str(sent00)
+sent01 <- as.character(sent00[, 1])
+
+attfilenames <- paste0("attitude", 1:66, ".png")
+
 library(scales)
+library(ggplot2)
+library(RColorBrewer)
+library(plyr)
 
-wtcase <- wtsummary(1)
-df <- data.frame(group, scale, wtcase)
-# https://stackoverflow.com/questions/33807624/understanding-ddply-error-message
-pct <- ddply(df, .(group), plyr::summarize, pct=round(wtcase/sum(wtcase)*100, 1))
-df <- data.frame(df, pct$pct)
-df$pct <- paste0(as.character(df$pct), "%")
-df$pct.pct <- NULL
+for (i in 1:66) {
+  wtcase <- wtsummary(i)
+  df <- data.frame(group, scale, wtcase)
+  # https://stackoverflow.com/questions/33807624/understanding-ddply-error-message
+  pct <- ddply(df, .(group), plyr::summarize, pct=round(wtcase/sum(wtcase)*100, 1))
+  df <- data.frame(df, pct$pct)
+  df$pct <- paste0(as.character(df$pct), "%")
+  df$pct.pct <- NULL
 
+  # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
+  # cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442")#, "#0072B2", "#D55E00", "#CC79A7")
+  # https://stackoverflow.com/questions/9563368/create-stacked-barplot-where-each-stack-is-scaled-to-sum-to-100
+  ggplot(df,aes(x = group, y = wtcase, fill = Scale)) + 
+    geom_bar(position = "fill",stat = "identity", width=.7, colour="black", lwd=0.1) +
+    scale_fill_brewer(palette="RdYlBu", direction=-1) + 
+    # https://stackoverflow.com/questions/8750871/ggplot2-reverse-order-of-scale-brewer
+    coord_flip()+
+    scale_y_continuous(labels = percent_format()) + 
+    xlab("")+
+    ylab(sent01[i]) 
+  
+  ggsave(attfilenames[i])
+}
 
-
-# https://stackoverflow.com/questions/9563368/create-stacked-barplot-where-each-stack-is-scaled-to-sum-to-100
-ggplot(df,aes(x = group, y = wtcase, fill = Scale)) + 
-  geom_bar(position = "fill",stat = "identity", width=.7, colour="black", lwd=0.1) +
-  coord_flip()+
-  scale_y_continuous(labels = percent_format()) + 
-  xlab("")+
-  ylab("") 
-#I am trying to figure out my career (e.g. what I want to to, where I will end up.).")
 
 library(lattice)
 library(Formula)
@@ -104,6 +120,20 @@ library(ggplot2)
 library(mice)
 library(weights)
 
-colnames(data11)
+wtd.chi.sq.results <- data.frame(Chisq=as.numeric(), df=as.integer(), p.value=as.numeric(), sig=as.character())
+wtd.chi.sq.results$sig <- as.character(wtd.chi.sq.results$sig)
+# options(stringsAsFactors = FALSE)
+# https://stackoverflow.com/questions/16819956/warning-message-in-invalid-factor-level-na-generated
+
 # https://cran.r-project.org/web/packages/weights/weights.pdf
-wtd.chi.sq(data11$Group, data11[, 1], weight=data11$Final_weights, mean1=FALSE)
+for (i in 1:66){
+  a <- wtd.chi.sq(data11$Group, data11[, i], weight=data11$Final_weights, mean1=FALSE)
+  wtd.chi.sq.results[i, 1] <- a[1]
+  wtd.chi.sq.results[i, 2] <- a[2]
+  wtd.chi.sq.results[i, 3] <- a[3]
+  wtd.chi.sq.results[i, 4] <- ifelse(a[3]<0.01, "***", ifelse(a[3]<0.05, "**", ifelse(a[3]<0.1, "*", "")))
+}
+
+wtd.chi.sq.results$varname <- colnames(data11)[1:66]
+wtd.chi.sq.results <- wtd.chi.sq.results[, c(5, 1:4)]
+write.csv(wtd.chi.sq.results, file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/wtchisqresults.csv")
