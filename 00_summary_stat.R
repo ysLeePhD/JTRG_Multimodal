@@ -220,16 +220,16 @@ xvars <- c("Gender1", "Gender2", "Gender3", "Gender4", "yeschild",
 
 wt.table1 <- svydesign(ids = ~ 1, data = data02, weights = ~ Final_weights)
 wt.table2 <- svyCreateTableOne(vars = xvars, strata ="Group", data = wt.table1)
-a <- print(wt.table2, test=TRUE, smd = TRUE)
+a <- print(wt.table2, catDigits=3, contDigits=3, test=TRUE, smd = TRUE)
 b <- data.frame(a)
 b$vars <- rownames(b)
 
 m1 <- as.numeric(substr(as.character(b$IndMill), 1, 7))
-sd1 <- as.numeric(substr(as.character(b$IndMill), 9, nchar(as.character(b$IndMill))-1))
+sd1 <- as.numeric(substr(as.character(b$IndMill), 10, nchar(as.character(b$IndMill))-1))
 m2 <- as.numeric(substr(as.character(b$DepMill), 1, 7))
-sd2 <- as.numeric(substr(as.character(b$DepMill), 9, nchar(as.character(b$DepMill))-1))
+sd2 <- as.numeric(substr(as.character(b$DepMill), 10, nchar(as.character(b$DepMill))-1))
 m3 <- as.numeric(substr(as.character(b$GenXer), 1, 7))
-sd3 <- as.numeric(substr(as.character(b$GenXer), 9, nchar(as.character(b$GenXer))-1))
+sd3 <- as.numeric(substr(as.character(b$GenXer), 10, nchar(as.character(b$GenXer))-1))
 vars <- c("n", "Male", "Female", "Transgender", "Decline to answer", "Presence of children", "Prefer not to answer", 
           "Less than $20,000", "$20,001 to $40,000", "$40,001 to $60,000", "$60,001 to $80,000", 
           "$80,001 to $100,000", "$100,001 to $120,000", "$120,000 to $140,000", "$140,001 to $160,000", 
