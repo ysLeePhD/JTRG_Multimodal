@@ -124,12 +124,16 @@ hist(data21$pct_leisure_active, freq=FALSE, breaks=seq(0, 100, by=1.25))
 hist(data21$pct_leisure_other, freq=FALSE, breaks=seq(0, 100, by=1.25))
 
 data21$modality_leisure <- NA 
-data21$modality_leisure <- ifelse(data21$leisure_total>0, "Other", data21$modality_leisure) 
-data21$modality_leisure <- ifelse(data21$pct_leisure_car>=75, "Car user", data21$modality_leisure) 
-data21$modality_leisure <- ifelse(data21$pct_leisure_transit>=50, "Transit rider", data21$modality_leisure) 
-data21$modality_leisure <- ifelse(data21$pct_leisure_active>=50, "Active traveler", data21$modality_leisure) 
-data21$modality_leisure <- factor(data21$modality_leisure, levels=c("Car user", "Transit rider", "Active traveler", "Other"))
-
+data21$modality_leisure <- ifelse(data21$leisure_total>0, "Other multimodals", data21$modality_leisure) 
+data21$modality_leisure <- ifelse(data21$pct_leisure_car==100, "Only car user", data21$modality_leisure) 
+data21$modality_leisure <- ifelse(data21$pct_leisure_car>=75 & data21$pct_leisure_car<100, "Mostly car user", data21$modality_leisure) 
+data21$modality_leisure <- ifelse(data21$pct_leisure_transit==100, "Only transit rider", data21$modality_leisure) 
+data21$modality_leisure <- ifelse(data21$pct_leisure_transit>=50 & data21$pct_leisure_transit<100, "Mostly transit rider", data21$modality_leisure) 
+data21$modality_leisure <- ifelse(data21$pct_leisure_active==100, "Only active traveler", data21$modality_leisure) 
+data21$modality_leisure <- ifelse(data21$pct_leisure_active>=50 & data21$pct_leisure_active<100, "Mostly active traveler", data21$modality_leisure) 
+data21$modality_leisure <- factor(data21$modality_leisure, levels=c("Only car user", "Mostly car user", 
+                                                                    "Only transit rider", "Mostly transit rider", 
+                                                                    "Only active commuter", "Mostly active commuter", "Other multimodals"))
 table(data21$modality_leisure)
 sum(is.na(data21$modality_leisure)&data21$leisure_total>0)
 
@@ -141,3 +145,6 @@ prop.table(mytable)
 prop.table(mytable, 1) # row percentage 
 prop.table(mytable, 2) # column percentage 
 # https://www.statmethods.net/stats/frequencies.html
+
+library(gmodels)
+CrossTable(data21$modality_commutes, data21$modality_leisure)
