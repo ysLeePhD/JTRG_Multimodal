@@ -152,23 +152,48 @@ table(data21$last_car+
         data21$last_active+
         data21$last_other)
 
-data21$last_car2     <- ifelse(data21$F8school_Drivealone==1 | data21$F8school_CarpoolD==1 | data21$F8school_CarpoolP==1 | data21$F8school_Moto==1, 1, 0)
-data21$last_car2     <- ifelse(is.na(data21$last_car2)==TRUE, 0, data21$last_car2)
-data21$last_transit2 <- ifelse(data21$F8school_Bus==1 | data21$F8school_LR==1 | data21$F8school_Train==1, 1, 0)
-data21$last_transit2 <- ifelse(is.na(data21$last_transit2)==TRUE, 0, data21$last_transit2)
-data21$last_active2  <- ifelse(data21$F8school_Bike==1 | data21$F8school_Skateboard==1 | data21$F8school_Walk==1, 1, 0) 
-data21$last_active2  <- ifelse(is.na(data21$last_active2)==TRUE, 0, data21$last_active2) 
-data21$last_other2   <- ifelse(data21$F8school_Shuttle==1 | data21$F8school_Taxi==1 | data21$F8school_Uber==1 | data21$F8school_Other==1, 1, 0) 
-data21$last_other2   <- ifelse(is.na(data21$last_other2)==TRUE, 0, data21$last_other2)
+data21$last_car2a     <- ifelse(data21$F8school_Drivealone==1 | data21$F8school_CarpoolD==1 | data21$F8school_CarpoolP==1 | data21$F8school_Moto==1, 1, 0)
+data21$last_car2a     <- ifelse(is.na(data21$last_car2a)==TRUE, 0, data21$last_car2a)
+data21$last_transit2a <- ifelse(data21$F8school_Bus==1 | data21$F8school_LR==1 | data21$F8school_Train==1, 1, 0)
+data21$last_transit2a <- ifelse(is.na(data21$last_transit2a)==TRUE, 0, data21$last_transit2a)
+data21$last_active2a  <- ifelse(data21$F8school_Bike==1 | data21$F8school_Skateboard==1 | data21$F8school_Walk==1, 1, 0) 
+data21$last_active2a  <- ifelse(is.na(data21$last_active2a)==TRUE, 0, data21$last_active2a) 
+data21$last_other2a   <- ifelse(data21$F8school_Shuttle==1 | data21$F8school_Taxi==1 | data21$F8school_Uber==1 | data21$F8school_Other==1, 1, 0) 
+data21$last_other2a   <- ifelse(is.na(data21$last_other2a)==TRUE, 0, data21$last_other2a)
+
+table(data21$last_car2a)
+table(data21$last_transit2a)
+table(data21$last_active2a)
+table(data21$last_other2a)
+
+data21$last_car2b     <- ifelse(data21$F8work_Drivealone==1 | data21$F8work_CarpoolD==1 | data21$F8work_CarpoolP==1 | data21$F8work_Moto==1, 1, 0)
+data21$last_car2b     <- ifelse(is.na(data21$last_car2b)==TRUE, 0, data21$last_car2b)
+data21$last_transit2b <- ifelse(data21$F8work_Bus==1 | data21$F8work_LR==1 | data21$F8work_Train==1, 1, 0)
+data21$last_transit2b <- ifelse(is.na(data21$last_transit2b)==TRUE, 0, data21$last_transit2b)
+data21$last_active2b  <- ifelse(data21$F8work_Bike==1 | data21$F8work_Skateboard==1 | data21$F8work_Walk==1, 1, 0) 
+data21$last_active2b  <- ifelse(is.na(data21$last_active2b)==TRUE, 0, data21$last_active2b) 
+data21$last_other2b   <- ifelse(data21$F8work_Shuttle==1 | data21$F8work_Taxi==1 | data21$F8work_Uber==1 | data21$F8work_Other==1, 1, 0) 
+data21$last_other2b   <- ifelse(is.na(data21$last_other2b)==TRUE, 0, data21$last_other2b)
+
+table(data21$last_car2b)
+table(data21$last_transit2b)
+table(data21$last_active2b)
+table(data21$last_other2b)
+
+data21$last_car2     <- ifelse(data21$last_car2a==1 | data21$last_car2b==1, 1, 0)
+data21$last_transit2 <- ifelse(data21$last_transit2a==1 | data21$last_transit2b==1, 1, 0)
+data21$last_active2  <- ifelse(data21$last_active2a==1 | data21$last_active2b==1, 1, 0)
+data21$last_other2   <- ifelse(data21$last_other2a==1 | data21$last_other2b==1, 1, 0)
 
 table(data21$last_car2)
+table(data21$last_transit2)
+table(data21$last_active2)
+table(data21$last_other2)
 
-data21$last_car2     <- ifelse(data21$last_car2==0 & (data21$F8work_Drivealone==1 | data21$F8work_CarpoolD==1 | data21$F8work_CarpoolP==1 | data21$F8work_Moto==1, 1, data21$last_car2)
-data21$last_transit2 <- ifelse(data21$F8work_Bus==1 | data21$F8work_LR==1 | data21$F8work_Train==1, 1, data21$last_transit2)
-data21$last_active2  <- ifelse(data21$F8work_Bike==1 | data21$F8work_Skateboard==1 | data21$F8work_Walk==1, 1, data21$last_active2) 
-data21$last_other2   <- ifelse(data21$F8work_Shuttle==1 | data21$F8work_Taxi==1 | data21$F8work_Uber==1 | data21$F8work_Other==1, 1, data21$last_other2) 
+data21$lc.mono_car    <- ifelse(data21$last_car==1 & data21$last_transit2==0 & data21$last_active2==0 & data21$last_other2==0, 1, 0) 
+data21$lc.mono_noncar <- ifelse((data21$last_transit==1 | data21$last_active==1 | data21$last_other==1) & data21$last_car2==0, 1, 0)
+data21$lc.multi       <- ifelse()
 
-table(data21$last_car2+
-        data21$last_transit2+
-        data21$last_active2+
-        data21$last_other2)
+table(data21$lc.mono_car)
+table(data21$lc.mono_noncar)
+table(data21$lc.multi)
