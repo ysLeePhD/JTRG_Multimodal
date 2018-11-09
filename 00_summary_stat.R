@@ -221,7 +221,7 @@ xvars <- c("Gender1", "Gender2", "Gender3", "Gender4", "yeschild",
            "lastcommute_other", "commute_car", "commute_transit", "commute_active", "commute_ridehail", 
            "commute_other", "leisure_car", "leisure_transit", "leisure_active", "leisure_ridehail", "leisure_other")
 
-xvars2 <- c("Gender", "AgeGroup", "Race", "Hispanic", "Education", "HHSize", "yeschild", "hhincome", 
+xvars2 <- c("Gender", "AgeGroup", "Race", "Hispanic", "Education", "hhincome", "HHSize", "yeschild", 
             "license", "ncar", "carpdr", "VMDpw", 
             "lastcommute_drive", "lastcommute_carpool", "lastcommute_motor", "lastcommute_shuttle", 
            "lastcommute_transit", "lastcommute_ridehail", "lastcommute_bike", "lastcommute_walk", 
@@ -248,7 +248,8 @@ library(weights)
 data03 <- data02[data02$Group != "GenXer", ]
 data04 <- data02[data02$Group != "DepMill", ]
 data05 <- data02[data02$Group != "IndMill", ]
-colnames(data03)
+
+rm(table1)
 table1 <- data.frame("IndM-DepM"=as.numeric(), "sig1"=as.character(), 
                      "IndM-GenX"=as.numeric(), "sig2"=as.character(), 
                      "DepM-GenX"=as.numeric(), "sig3"=as.character(), stringsAsFactors = FALSE)
@@ -263,49 +264,19 @@ for (i in 3:10) {
   rownames(table1)[i-2] <- colnames(data03)[i]
 }
 
-for (i in 11:14) {
-  table1[i-2, 1] <- wtd.t.test(as.numeric(data03$Group), data03[, i], weight=data03$Final_weights, mean1=TRUE)$coefficients[3]
+data06 <- data02[data02$Group == "IndMill", ]
+data07 <- data02[data02$Group == "DepMill", ]
+data08 <- data02[data02$Group == "GenXer", ]
+
+for (i in 11:33) {
+  table1[i-2, 1] <- wtd.t.test(data06[, i], data07[, i], weight=data06$Final_weights, weighty=data07$Final_weights, samedata=FALSE)$coefficients[3]
   table1[i-2, 2] <- ifelse(table1[i-2, 1]<0.01, "***", ifelse(table1[i-2, 1]<0.05, "**", ifelse(table1[i-2, 1]<0.1, "*", "")))
-  table1[i-2, 3] <- wtd.t.test(as.numeric(data04$Group), data04[, i], weight=data04$Final_weights, mean1=TRUE)$coefficients[3]
+  table1[i-2, 3] <- wtd.t.test(data06[, i], data08[, i], weight=data06$Final_weights, weighty=data08$Final_weights, samedata=FALSE)$coefficients[3]
   table1[i-2, 4] <- ifelse(table1[i-2, 3]<0.01, "***", ifelse(table1[i-2, 3]<0.05, "**", ifelse(table1[i-2, 3]<0.1, "*", "")))
-  table1[i-2, 5] <- wtd.t.test(as.numeric(data05$Group), data05[, i], weight=data05$Final_weights, mean1=TRUE)$coefficients[3]
+  table1[i-2, 5] <- wtd.t.test(data07[, i], data08[, i], weight=data07$Final_weights, weighty=data08$Final_weights, samedata=FALSE)$coefficients[3]
   table1[i-2, 6] <- ifelse(table1[i-2, 5]<0.01, "***", ifelse(table1[i-2, 5]<0.05, "**", ifelse(table1[i-2, 5]<0.1, "*", "")))
   rownames(table1)[i-2] <- colnames(data03)[i]
 }
 
 table1
-
-
-
-a
-b <- data.frame(a)
-b$vars <- rownames(b)
-
-m1 <- as.numeric(substr(as.character(b$IndMill), 1, 7))
-sd1 <- as.numeric(substr(as.character(b$IndMill), 10, nchar(as.character(b$IndMill))-1))
-m2 <- as.numeric(substr(as.character(b$DepMill), 1, 7))
-sd2 <- as.numeric(substr(as.character(b$DepMill), 10, nchar(as.character(b$DepMill))-1))
-m3 <- as.numeric(substr(as.character(b$GenXer), 1, 7))
-sd3 <- as.numeric(substr(as.character(b$GenXer), 10, nchar(as.character(b$GenXer))-1))
-vars <- c("n", "Male", "Female", "Transgender", "Decline to answer", "Presence of children", "Prefer not to answer", 
-          "Less than $20,000", "$20,001 to $40,000", "$40,001 to $60,000", "$60,001 to $80,000", 
-          "$80,001 to $100,000", "$100,001 to $120,000", "$120,000 to $140,000", "$140,001 to $160,000", 
-          "More than $160,000", 
-          "Younger millennials(18-26)", "Older millennials(27-34)", "Younger Generation X(35-43)", 
-          "Older Generation X(44-50)", "Hispanic", "Asian/Pacific Islander", "White/Caucasian", 
-          "Black/African American", "American Indian/Native American", "Ohter/multi-racial", 
-          "Prefer not to answer", "Some grade/high school", "High school/GED", "Some college/technical school", 
-          "Associate's degree", "Bachelor's degree", "Graduate degree", "Professional degree", 
-          "Household size", "# of household vehicles", "Vehicles per driver", "Weekly VMD",
-          "Drive alone", "Carpool", "Motorcycle or motor-scooter", "Work-/School-provided shuttle", 
-          "Public transit", "Uber/Lyft (on-demand ride services)", "Bike or e-bike", 
-          "Walk or skateboard", "Other", "Monthly commutes by cars", "Monthly commutes by public transit", 
-          "Monthly commutes by active modes", "Monthly commutes by ride services", "Monthly commutes by others", 
-          "Monthly leiusre by cars", "Monthly leisure by public transit", "Monthly leisure by active modes", 
-          "Monthly leisure by ride services", "Monthly leisure by others")
-df <- data.frame(vars, m1, sd1, m2, sd2, m3, sd3, b$p) 
-rownames(df) <- NULL
-write.csv(df, file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/wtsummary.csv")
-# https://cran.r-project.org/web/packages/tableone/vignettes/introduction.html
-# oneway.test() for continous variables (with equal variance assumption, i.e., regular ANOVA)
 

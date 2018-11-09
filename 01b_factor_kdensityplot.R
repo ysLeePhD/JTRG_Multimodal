@@ -40,22 +40,26 @@ for (i in 19:50) {
 
 # http://www.sthda.com/english/wiki/one-way-anova-test-in-r
 
-aov.results <- data.frame(var1=double(), var2=double(), var3=double())
-colnames(aov.results) <- c("DepMill-IndMill", "GenXer-IndMill", "GenXer-DepMill")
+table(data31$Group)
+table(as.numeric(data31$Group))
 
-for (i in 19:50) {
-  a <- TukeyHSD(aov(data31[, i] ~ data31$Group))[[1]][, 4]
-  aov.results[i-18, 1] <- a[1]
-  aov.results[i-18, 2] <- a[2]
-  aov.results[i-18, 3] <- a[3]
+data32 <- data31[data31$Group == "IndMill", ]
+data33 <- data31[data31$Group == "DepMill", ]
+data34 <- data31[data31$Group == "GenXer", ]
+
+rm(table3) 
+table3 <- data.frame("IndM-DepM"=double(), "sig1"=as.character(), 
+                     "IndM-GenX"=double(), "sig2"=as.character(), 
+                     "DepM-GenX"=double(), "sig3"=as.character(), stringsAsFactors = FALSE)
+table3
+for (i in 19:36) {
+  table3[i-18, 1] <- wtd.t.test(data32[, i], data33[, i], weight=data32$Final_weights, weighty=data33$Final_weights, samedata=FALSE)$coefficients[3]
+  table3[i-18, 2] <- ifelse(table3[i-18, 1]<0.01, "***", ifelse(table3[i-18, 1]<0.05, "**", ifelse(table3[i-18, 1]<0.1, "*", "")))
+  table3[i-18, 3] <- wtd.t.test(data32[, i], data34[, i], weight=data32$Final_weights, weighty=data34$Final_weights, samedata=FALSE)$coefficients[3]
+  table3[i-18, 4] <- ifelse(table3[i-18, 3]<0.01, "***", ifelse(table3[i-18, 3]<0.05, "**", ifelse(table3[i-18, 3]<0.1, "*", "")))
+  table3[i-18, 5] <- wtd.t.test(data33[, i], data34[, i], weight=data33$Final_weights, weighty=data34$Final_weights, samedata=FALSE)$coefficients[3]
+  table3[i-18, 6] <- ifelse(table3[i-18, 5]<0.01, "***", ifelse(table3[i-18, 5]<0.05, "**", ifelse(table3[i-18, 5]<0.1, "*", "")))
+  rownames(table3)[i-18] <- colnames(data32)[i]
 }
-aov.results
-aov.results$sig1 <- ifelse(aov.results[1]<0.01, "***", ifelse(aov.results[1]<0.05, "**", ifelse(aov.results[1]<0.1, "*", "")))
-aov.results$sig2 <- ifelse(aov.results[2]<0.01, "***", ifelse(aov.results[2]<0.05, "**", ifelse(aov.results[2]<0.1, "*", "")))
-aov.results$sig3 <- ifelse(aov.results[3]<0.01, "***", ifelse(aov.results[3]<0.05, "**", ifelse(aov.results[3]<0.1, "*", "")))
-aov.results <- aov.results[, c(1, 4, 2, 5, 3, 6)]
-rownames(aov.results) <- colnames(data31)[19:50]
-write.csv(aov.results, file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/anovaresults.csv")
 
-
-
+table3 
