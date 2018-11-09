@@ -149,21 +149,15 @@ data02 <- data01[, c("PID", "Group", "Gender", "yeschild", "hhincome", "AgeGroup
 
 sapply(data02, class)
 
+data02$AgeGroup1 <- ifelse(as.numeric(data02$AgeGroup)==1, 1, 0)
+data02$AgeGroup2 <- ifelse(as.numeric(data02$AgeGroup)==2, 1, 0)
+data02$AgeGroup3 <- ifelse(as.numeric(data02$AgeGroup)==3, 1, 0)
+data02$AgeGroup4 <- ifelse(as.numeric(data02$AgeGroup)==4, 1, 0)
+
 data02$Gender1 <- ifelse(as.numeric(data02$Gender)==1, 1, 0)
 data02$Gender2 <- ifelse(as.numeric(data02$Gender)==2, 1, 0)
 data02$Gender3 <- ifelse(as.numeric(data02$Gender)==3, 1, 0)
 data02$Gender4 <- ifelse(as.numeric(data02$Gender)==4, 1, 0)
-
-data02$hhincome01 <- ifelse(as.numeric(data02$hhincome)==1, 1, 0)
-data02$hhincome02 <- ifelse(as.numeric(data02$hhincome)==2, 1, 0)
-data02$hhincome03 <- ifelse(as.numeric(data02$hhincome)==3, 1, 0)
-data02$hhincome04 <- ifelse(as.numeric(data02$hhincome)==4, 1, 0)
-data02$hhincome05 <- ifelse(as.numeric(data02$hhincome)==5, 1, 0)
-data02$hhincome06 <- ifelse(as.numeric(data02$hhincome)==6, 1, 0)
-data02$hhincome07 <- ifelse(as.numeric(data02$hhincome)==7, 1, 0)
-data02$hhincome08 <- ifelse(as.numeric(data02$hhincome)==8, 1, 0)
-data02$hhincome09 <- ifelse(as.numeric(data02$hhincome)==9, 1, 0)
-data02$hhincome10 <- ifelse(as.numeric(data02$hhincome)==10, 1, 0)
 
 data02$Race1 <- ifelse(as.numeric(data02$Race)==1, 1, 0)
 data02$Race2 <- ifelse(as.numeric(data02$Race)==2, 1, 0)
@@ -180,10 +174,17 @@ data02$Education6 <- ifelse(as.numeric(data02$Education)==6, 1, 0)
 data02$Education7 <- ifelse(as.numeric(data02$Education)==7, 1, 0)
 data02$Education8 <- ifelse(as.numeric(data02$Education)==8, 1, 0)
 
-data02$AgeGroup1 <- ifelse(as.numeric(data02$AgeGroup)==1, 1, 0)
-data02$AgeGroup2 <- ifelse(as.numeric(data02$AgeGroup)==2, 1, 0)
-data02$AgeGroup3 <- ifelse(as.numeric(data02$AgeGroup)==3, 1, 0)
-data02$AgeGroup4 <- ifelse(as.numeric(data02$AgeGroup)==4, 1, 0)
+data02$hhincome01 <- ifelse(as.numeric(data02$hhincome)==1, 1, 0)
+data02$hhincome02 <- ifelse(as.numeric(data02$hhincome)==2, 1, 0)
+data02$hhincome03 <- ifelse(as.numeric(data02$hhincome)==3, 1, 0)
+data02$hhincome04 <- ifelse(as.numeric(data02$hhincome)==4, 1, 0)
+data02$hhincome05 <- ifelse(as.numeric(data02$hhincome)==5, 1, 0)
+data02$hhincome06 <- ifelse(as.numeric(data02$hhincome)==6, 1, 0)
+data02$hhincome07 <- ifelse(as.numeric(data02$hhincome)==7, 1, 0)
+data02$hhincome08 <- ifelse(as.numeric(data02$hhincome)==8, 1, 0)
+data02$hhincome09 <- ifelse(as.numeric(data02$hhincome)==9, 1, 0)
+data02$hhincome10 <- ifelse(as.numeric(data02$hhincome)==10, 1, 0)
+
 
 library(plyr)
 
@@ -202,7 +203,7 @@ library(Matrix)
 library(survival)
 library(survey)
 
-head(data02)
+colnames(data02)
 
 ## Weighted table with tableone
 xvars <- c("Gender1", "Gender2", "Gender3", "Gender4", "yeschild", 
@@ -218,9 +219,42 @@ xvars <- c("Gender1", "Gender2", "Gender3", "Gender4", "yeschild",
            "lastcommute_other", "commute_car", "commute_transit", "commute_active", "commute_ridehail", 
            "commute_other", "leisure_car", "leisure_transit", "leisure_active", "leisure_ridehail", "leisure_other")
 
+xvars2 <- c("Gender", "AgeGroup", "Race", "Hispanic", "Education", "HHSize", "yeschild", "hhincome", 
+            "ncar", "carpdr", "VMDpw") 
+
+           #"lastcommute_drive", "lastcommute_carpool", "lastcommute_motor", "lastcommute_shuttle", 
+           #"lastcommute_transit", "lastcommute_ridehail", "lastcommute_bike", "lastcommute_walk", 
+           #"lastcommute_other", "commute_car", "commute_transit", "commute_active", "commute_ridehail", 
+           #"commute_other", "leisure_car", "leisure_transit", "leisure_active", "leisure_ridehail", "leisure_other")
+
 wt.table1 <- svydesign(ids = ~ 1, data = data02, weights = ~ Final_weights)
-wt.table2 <- svyCreateTableOne(vars = xvars, strata ="Group", data = wt.table1)
-a <- print(wt.table2, catDigits=3, contDigits=3, test=TRUE, smd = TRUE)
+wt.table2 <- svyCreateTableOne(vars = xvars2, strata ="Group", data = wt.table1)
+print(wt.table2, catDigits=3, contDigits=3, test=TRUE, smd = TRUE)
+
+library(lattice)
+library(Formula)
+library(Hmisc)
+
+library(gdata)
+library(lattice)
+library(Formula)
+library(Hmisc)
+library(ggplot2)
+library(mice)
+library(weights)
+
+wtd.chi.sq(data02$Group, data02$Gender, weight=data02$Final_weights, mean1=FALSE)
+data03 <- data02[data02$Group != "GenXer", ]
+wtd.chi.sq(data03$Group, data03$Gender, weight=data03$Final_weights, mean1=FALSE)
+data04 <- data02[data02$Group != "DepMill", ]
+wtd.chi.sq(data04$Group, data04$Gender, weight=data04$Final_weights, mean1=FALSE)
+data05 <- data02[data02$Group != "IndMill", ]
+wtd.chi.sq(data05$Group, data05$Gender, weight=data05$Final_weights, mean1=FALSE)
+
+
+
+
+a <- 
 b <- data.frame(a)
 b$vars <- rownames(b)
 
