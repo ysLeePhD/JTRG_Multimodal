@@ -268,6 +268,8 @@ data06 <- data02[data02$Group == "IndMill", ]
 data07 <- data02[data02$Group == "DepMill", ]
 data08 <- data02[data02$Group == "GenXer", ]
 
+# https://stackoverflow.com/questions/39646391/independent-sample-t-test-after-weighting
+# https://cran.r-project.org/web/packages/weights/weights.pdf
 for (i in 11:33) {
   table1[i-2, 1] <- wtd.t.test(data06[, i], data07[, i], weight=data06$Final_weights, weighty=data07$Final_weights, samedata=FALSE)$coefficients[3]
   table1[i-2, 2] <- ifelse(table1[i-2, 1]<0.01, "***", ifelse(table1[i-2, 1]<0.05, "**", ifelse(table1[i-2, 1]<0.1, "*", "")))

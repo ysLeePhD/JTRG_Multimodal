@@ -22,6 +22,8 @@ data21$transitscore <- ifelse(is.na(data21$transitscore)==TRUE, 0, data21$transi
 
 head(data21)
 
+
+
 # the below scripts borrowed from 00_summary.stat.R  
 
 modefreq <- function(x){
@@ -47,6 +49,7 @@ modefreq <- function(x){
 }
 
 
+
 # modality styles for commute trips 
 
 data21$commute_car <- modefreq(data21$F6school_Drivealone) + modefreq(data21$F6school_CarpoolD) + modefreq(data21$F6school_CarpoolP) + 
@@ -66,12 +69,6 @@ data21$pct_commute_transit <- ifelse(data21$commute_total>0, data21$commute_tran
 data21$pct_commute_active <- ifelse(data21$commute_total>0, data21$commute_active/data21$commute_total*100, 0)
 data21$pct_commute_other <- ifelse(data21$commute_total>0, data21$commute_other/data21$commute_total*100, 0)
 
-#data21$entropy_commutes <- ifelse(data21$commute_total>0, -data21$pct_commute_car/100*log(data21$pct_commute_car/100)
-#                                  -data21$pct_commute_transit/100*log(data21$pct_commute_transit/100)
-#                                  -data21$pct_commute_active/100*log(data21$pct_commute_active/100)
-#                                  -data21$pct_commute_other/100*log(data21$pct_commute_other/100), NA) 
-#hist(data21$entropy_commutes)
-
 quantile(data21$pct_commute_car, probs=c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99))
 quantile(data21$pct_commute_transit, probs=c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99))
 quantile(data21$pct_commute_active, probs=c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99))
@@ -83,19 +80,15 @@ hist(data21$pct_commute_active, freq=FALSE, breaks=seq(0, 100, by=1.25))
 hist(data21$pct_commute_other, freq=FALSE, breaks=seq(0, 100, by=1.25))
 
 data21$modality_commutes <- NA 
-data21$modality_commutes <- ifelse(data21$commute_total>0, "Other commuter", data21$modality_commutes) 
-data21$modality_commutes <- ifelse(data21$pct_commute_car==100, "Only car commuter", data21$modality_commutes) 
-data21$modality_commutes <- ifelse(data21$pct_commute_car>=75 & data21$pct_commute_car<100, "Mostly car commuter", data21$modality_commutes) 
-data21$modality_commutes <- ifelse(data21$pct_commute_transit==100, "Only transit commuter", data21$modality_commutes) 
-data21$modality_commutes <- ifelse(data21$pct_commute_transit>=50 & data21$pct_commute_transit<100, "Mostly transit commuter", data21$modality_commutes) 
-data21$modality_commutes <- ifelse(data21$pct_commute_active==100, "Only active commuter", data21$modality_commutes) 
-data21$modality_commutes <- ifelse(data21$pct_commute_active>=50 & data21$pct_commute_active<100, "Mostly active commuter", data21$modality_commutes) 
+data21$modality_commutes <- ifelse(data21$pct_commute_car>=90, "Monomodal driver", data21$modality_commutes) 
+data21$modality_commutes <- ifelse(data21$pct_commute_car<90 & data21$pct_commute_car>=10, 
+                                   "Multimodal driver", data21$modality_commutes) 
+data21$modality_commutes <- ifelse(data21$pct_commute_car<10 & data21$pct_commute_car>=0, "Multimodal non-driver", data21$modality_commutes) 
+data21$modality_commutes <- ifelse(data21$commute_total==0, NA, data21$modality_commutes) 
 data21$modality_commutes <- factor(data21$modality_commutes, 
-                                   levels=c("Only car commuter", "Mostly car commuter", 
-                                            "Only transit commuter", "Mostly transit commuter", 
-                                            "Only active commuter", "Mostly active commuter", "Other commuter"))
-table(data21$modality_commutes)
-sum(is.na(data21$modality_commutes)&data21$commute_total>0)
+                                   levels=c("Monomodal driver", "Multimodal driver", 
+                                            "Multimodal non-driver"), ordered=TRUE)
+table(data21$modality_commutes) #sum-1340 (unweighted)
 
 
 
@@ -124,57 +117,20 @@ hist(data21$pct_leisure_active, freq=FALSE, breaks=seq(0, 100, by=1.25))
 hist(data21$pct_leisure_other, freq=FALSE, breaks=seq(0, 100, by=1.25))
 
 data21$modality_leisure <- NA 
-data21$modality_leisure <- ifelse(data21$leisure_total>0, "Other multimodals", data21$modality_leisure) 
-data21$modality_leisure <- ifelse(data21$pct_leisure_car==100, "Only car user", data21$modality_leisure) 
-data21$modality_leisure <- ifelse(data21$pct_leisure_car>=75 & data21$pct_leisure_car<100, "Mostly car user", data21$modality_leisure) 
-data21$modality_leisure <- ifelse(data21$pct_leisure_transit==100, "Only transit rider", data21$modality_leisure) 
-data21$modality_leisure <- ifelse(data21$pct_leisure_transit>=50 & data21$pct_leisure_transit<100, "Mostly transit rider", data21$modality_leisure) 
-data21$modality_leisure <- ifelse(data21$pct_leisure_active==100, "Only active traveler", data21$modality_leisure) 
-data21$modality_leisure <- ifelse(data21$pct_leisure_active>=50 & data21$pct_leisure_active<100, "Mostly active traveler", data21$modality_leisure) 
-data21$modality_leisure <- factor(data21$modality_leisure, levels=c("Only car user", "Mostly car user", 
-                                                                    "Only transit rider", "Mostly transit rider", 
-                                                                    "Only active traveler", "Mostly active traveler", "Other multimodals"))
-table(data21$modality_leisure)
-sum(data21$leisure_total>0) #1913 
-sum(data21$leisure_total==0) #no leisure trips reported 
-sum(is.na(data21$modality_leisure)==TRUE) #no leisure trips reported 
-sum(is.na(data21$modality_leisure)==TRUE & data21$leisure_total>0)
+data21$modality_leisure <- ifelse(data21$pct_leisure_car>=90, "Monomodal driver", data21$modality_leisure) 
+data21$modality_leisure <- ifelse(data21$pct_leisure_car<90 & data21$pct_leisure_car>=10, 
+                                   "Multimodal driver", data21$modality_leisure) 
+data21$modality_leisure <- ifelse(data21$pct_leisure_car<10 & data21$pct_leisure_car>=0, "Multimodal non-driver", 
+                                  data21$modality_leisure) 
+data21$modality_leisure <- ifelse(data21$leisure_total==0, NA, data21$modality_leisure) 
+data21$modality_leisure <- factor(data21$modality_leisure, 
+                                   levels=c("Monomodal driver", "Multimodal driver", 
+                                            "Multimodal non-driver"), ordered=TRUE)
+table(data21$modality_leisure) #sum-1913 (unweighted)
 
 
-# mytable <- table(data21$modality_commutes, data21$modality_leisure)
-# mytable
 
-# prop.table(mytable)
-# prop.table(mytable, 1) # row percentage 
-# prop.table(mytable, 2) # column percentage 
-# https://www.statmethods.net/stats/frequencies.html
-
-# library(gmodels)
-# CrossTable(data21$modality_commutes, data21$modality_leisure)
-
-# mytable.IndMill <- table(data21[data21$Group=="IndMill", ]$modality_commutes, data21[data21$Group=="IndMill", ]$modality_leisure)
-# mytable.IndMill
-
-# round(prop.table(mytable.IndMill), 2)
-# round(prop.table(mytable.IndMill, 1), 2) # row percentage 
-# round(prop.table(mytable.IndMill, 2), 2) # column percentage 
-
-# mytable.DepMill <- table(data21[data21$Group=="DepMill", ]$modality_commutes, data21[data21$Group=="DepMill", ]$modality_leisure)
-# mytable.DepMill
-
-# round(prop.table(mytable.DepMill), 2)
-# round(prop.table(mytable.DepMill, 1), 2) # row percentage 
-# round(prop.table(mytable.DepMill, 2), 2) # column percentage 
-
-# mytable.GenXer <- table(data21[data21$Group=="GenXer", ]$modality_commutes, data21[data21$Group=="GenXer", ]$modality_leisure)
-# mytable.GenXer
-
-# round(prop.table(mytable.GenXer), 2)
-# round(prop.table(mytable.GenXer, 1), 2) # row percentage 
-# round(prop.table(mytable.GenXer, 2), 2) # column percentage 
-
-
-# modality styles for the last commute trips 
+# modality styles for the last commute trip
 
 data21$last_car <- ifelse(is.na(data21$F7school_pmode)==FALSE & data21$F7school_pmode>=1 & data21$F7school_pmode<=4, 1, 0)
 data21$last_transit <- ifelse(is.na(data21$F7school_pmode)==FALSE & data21$F7school_pmode>=6 & data21$F7school_pmode<=8, 1, 0)
