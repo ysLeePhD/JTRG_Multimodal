@@ -4,7 +4,7 @@ library(foreign)
 data00 <- read.csv(file="M:/Millennial_CA/02_raw_data/11_latest_update/GenY_Syntax6_Step1_temp.csv")
 
 colnames(data00)
-data01 <- data00[, c(1, 114:120, 599:643, 799, 426, 468, 181:334, 674)]
+data01 <- data00[, c(1, 114:120, 599:643, 799, 420, 426, 468, 181:334, 674)]
 colnames(data01)
 
 data01$PID <- data01$ï..PID
@@ -35,6 +35,7 @@ data01$AgeGroup <- ifelse(data01$Age>=27 & data01$Age<=34, 2, data01$AgeGroup)
 data01$AgeGroup <- ifelse(data01$Age>=35 & data01$Age<=43, 3, data01$AgeGroup)
 data01$AgeGroup <- ifelse(data01$Age>=44,                  4, data01$AgeGroup)
 table(data01$AgeGroup)
+data01$AgeGroup <- factor(data01$AgeGroup, labels=c("youngM", "olderM", "youngX", "olderX"), ordered=TRUE)
 
 data01$Hispanic <- data01$K6d_hispanic
 
@@ -59,6 +60,7 @@ data01$HHSize <- data01$K13_HHSize
 
 # Travel outcomes  
 
+data01$license <- factor(data01$H1_car, labels=c("No license", "With a driver's license"), ordered=TRUE)
 data01$ncar <- data01$H4_NumCar
 data01$carpdr <- ifelse(data01$K15_numdrivers>0, data01$H4_NumCar/data01$K15_numdrivers, 0)
 data01$VMDpw <- ifelse(data01$H11car_VMT>=0, data01$H11car_VMT, 0) 
@@ -140,7 +142,7 @@ data01$leisure_other <- modefreq(data01$F14leisure_Taxi) + modefreq(data01$F14le
 # Create a weighted summary table 
 
 data02 <- data01[, c("PID", "Group", "Gender", "yeschild", "hhincome", "AgeGroup", 
-                     "Hispanic", "Race", "Education", "HHSize", "ncar", "carpdr", "VMDpw", 
+                     "Hispanic", "Race", "Education", "license", "HHSize", "ncar", "carpdr", "VMDpw", 
                      "lastcommute_drive", "lastcommute_carpool", "lastcommute_motor", "lastcommute_shuttle", 
                      "lastcommute_transit", "lastcommute_ridehail", "lastcommute_bike", "lastcommute_walk", 
                      "lastcommute_other", "commute_car", "commute_transit", "commute_active", "commute_ridehail", 
@@ -213,19 +215,18 @@ xvars <- c("Gender1", "Gender2", "Gender3", "Gender4", "yeschild",
            "Race1", "Race2", "Race3", "Race4", "Race5", 
            "Education1", "Education2", "Education3", "Education4", "Education5", 
            "Education6", "Education7", "Education8", "HHSize", 
-           "ncar", "carpdr", "VMDpw", 
+           "license", "ncar", "carpdr", "VMDpw", 
            "lastcommute_drive", "lastcommute_carpool", "lastcommute_motor", "lastcommute_shuttle", 
            "lastcommute_transit", "lastcommute_ridehail", "lastcommute_bike", "lastcommute_walk", 
            "lastcommute_other", "commute_car", "commute_transit", "commute_active", "commute_ridehail", 
            "commute_other", "leisure_car", "leisure_transit", "leisure_active", "leisure_ridehail", "leisure_other")
 
 xvars2 <- c("Gender", "AgeGroup", "Race", "Hispanic", "Education", "HHSize", "yeschild", "hhincome", 
-            "ncar", "carpdr", "VMDpw") 
-
-           #"lastcommute_drive", "lastcommute_carpool", "lastcommute_motor", "lastcommute_shuttle", 
-           #"lastcommute_transit", "lastcommute_ridehail", "lastcommute_bike", "lastcommute_walk", 
-           #"lastcommute_other", "commute_car", "commute_transit", "commute_active", "commute_ridehail", 
-           #"commute_other", "leisure_car", "leisure_transit", "leisure_active", "leisure_ridehail", "leisure_other")
+            "license", "ncar", "carpdr", "VMDpw", 
+            "lastcommute_drive", "lastcommute_carpool", "lastcommute_motor", "lastcommute_shuttle", 
+           "lastcommute_transit", "lastcommute_ridehail", "lastcommute_bike", "lastcommute_walk", 
+           "lastcommute_other", "commute_car", "commute_transit", "commute_active", "commute_ridehail", 
+           "commute_other", "leisure_car", "leisure_transit", "leisure_active", "leisure_ridehail", "leisure_other")
 
 wt.table1 <- svydesign(ids = ~ 1, data = data02, weights = ~ Final_weights)
 wt.table2 <- svyCreateTableOne(vars = xvars2, strata ="Group", data = wt.table1)
@@ -243,18 +244,40 @@ library(ggplot2)
 library(mice)
 library(weights)
 
-wtd.chi.sq(data02$Group, data02$Gender, weight=data02$Final_weights, mean1=FALSE)
+#wtd.chi.sq(data02$Group, data02$Gender, weight=data02$Final_weights, mean1=FALSE)
 data03 <- data02[data02$Group != "GenXer", ]
-wtd.chi.sq(data03$Group, data03$Gender, weight=data03$Final_weights, mean1=FALSE)
 data04 <- data02[data02$Group != "DepMill", ]
-wtd.chi.sq(data04$Group, data04$Gender, weight=data04$Final_weights, mean1=FALSE)
 data05 <- data02[data02$Group != "IndMill", ]
-wtd.chi.sq(data05$Group, data05$Gender, weight=data05$Final_weights, mean1=FALSE)
+colnames(data03)
+table1 <- data.frame("IndM-DepM"=as.numeric(), "sig1"=as.character(), 
+                     "IndM-GenX"=as.numeric(), "sig2"=as.character(), 
+                     "DepM-GenX"=as.numeric(), "sig3"=as.character(), stringsAsFactors = FALSE)
+
+for (i in 3:10) {
+  table1[i-2, 1] <- wtd.chi.sq(data03$Group, data03[, i], weight=data03$Final_weights, mean1=TRUE)[3]
+  table1[i-2, 2] <- ifelse(table1[i-2, 1]<0.01, "***", ifelse(table1[i-2, 1]<0.05, "**", ifelse(table1[i-2, 1]<0.1, "*", "")))
+  table1[i-2, 3] <- wtd.chi.sq(data04$Group, data04[, i], weight=data04$Final_weights, mean1=TRUE)[3]
+  table1[i-2, 4] <- ifelse(table1[i-2, 3]<0.01, "***", ifelse(table1[i-2, 3]<0.05, "**", ifelse(table1[i-2, 3]<0.1, "*", "")))
+  table1[i-2, 5] <- wtd.chi.sq(data05$Group, data05[, i], weight=data05$Final_weights, mean1=TRUE)[3]
+  table1[i-2, 6] <- ifelse(table1[i-2, 5]<0.01, "***", ifelse(table1[i-2, 5]<0.05, "**", ifelse(table1[i-2, 5]<0.1, "*", "")))
+  rownames(table1)[i-2] <- colnames(data03)[i]
+}
+
+for (i in 11:14) {
+  table1[i-2, 1] <- wtd.t.test(as.numeric(data03$Group), data03[, i], weight=data03$Final_weights, mean1=TRUE)$coefficients[3]
+  table1[i-2, 2] <- ifelse(table1[i-2, 1]<0.01, "***", ifelse(table1[i-2, 1]<0.05, "**", ifelse(table1[i-2, 1]<0.1, "*", "")))
+  table1[i-2, 3] <- wtd.t.test(as.numeric(data04$Group), data04[, i], weight=data04$Final_weights, mean1=TRUE)$coefficients[3]
+  table1[i-2, 4] <- ifelse(table1[i-2, 3]<0.01, "***", ifelse(table1[i-2, 3]<0.05, "**", ifelse(table1[i-2, 3]<0.1, "*", "")))
+  table1[i-2, 5] <- wtd.t.test(as.numeric(data05$Group), data05[, i], weight=data05$Final_weights, mean1=TRUE)$coefficients[3]
+  table1[i-2, 6] <- ifelse(table1[i-2, 5]<0.01, "***", ifelse(table1[i-2, 5]<0.05, "**", ifelse(table1[i-2, 5]<0.1, "*", "")))
+  rownames(table1)[i-2] <- colnames(data03)[i]
+}
+
+table1
 
 
 
-
-a <- 
+a
 b <- data.frame(a)
 b$vars <- rownames(b)
 
