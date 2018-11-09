@@ -4,7 +4,7 @@ library(foreign)
 data00 <- read.csv(file="M:/Millennial_CA/02_raw_data/11_latest_update/GenY_Syntax6_Step1_temp.csv")
 colnames(data00)
 
-data21 <- data00[, c(1, 181:334, 727:729, 794:796, 799, 116, 674)]
+data21 <- data00[, c(1, 181:334, 727:729, 794:796, 799, 803, 116, 674)]
 colnames(data21)
 
 data21$PID <- data21$ï..PID
@@ -192,8 +192,79 @@ table(data21$last_other2)
 
 data21$lc.mono_car    <- ifelse(data21$last_car==1 & data21$last_transit2==0 & data21$last_active2==0 & data21$last_other2==0, 1, 0) 
 data21$lc.mono_noncar <- ifelse((data21$last_transit==1 | data21$last_active==1 | data21$last_other==1) & data21$last_car2==0, 1, 0)
-data21$lc.multi       <- ifelse()
+data21$lc.multi       <- ifelse(data21$last_car+data21$last_transit+data21$last_active+data21$last_other>0 & data21$lc.mono_car==0 & 
+                                  data21$lc.mono_noncar==0, 1, 0)
+data21$modality_last <- ifelse(data21$lc.mono_car==1, 1, 0)
+data21$modality_last <- ifelse(data21$lc.mono_noncar==1, 2, data21$modality_last)
+data21$modality_last <- ifelse(data21$lc.multi==1, 3, data21$modality_last)
+data21$modality_last <- ifelse(data21$modality_last==0, NA, data21$modality_last)
+data21$modality_last <- as.factor(data21$modality_last)
+levels(data21$modality_last) <- c("Mono car", "Mono non-car", "Multimodal") 
 
-table(data21$lc.mono_car)
-table(data21$lc.mono_noncar)
-table(data21$lc.multi)
+data22 <- data21[, c("PID", "D1A", "D1B", "D1C", "walkscore", "bikescore", "transitscore", 
+                     "modality_commutes", "modality_leisure", "modality_last", "Group", "RegionHome", "Final_weights")]
+colnames(data22)
+
+
+library(tableone)
+library(grid) 
+library(Matrix)
+library(survival)
+library(survey)
+
+xvars4 <- c("D1A", "D1B", "D1C", "walkscore", "bikescore", "transitscore", 
+            "modality_commutes", "modality_leisure", "modality_last")
+
+wt.table4a <- svydesign(ids = ~ 1, data = data22, weights = ~ Final_weights)
+wt.table4b <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.table4a)
+print(wt.table4b, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
+
+wt.table4c <- svyCreateTableOne(vars = xvars4, strata ="RegionHome", data = wt.table4a)
+print(wt.table4c, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
+
+library(lattice)
+library(Formula)
+library(Hmisc)
+
+library(gdata)
+library(lattice)
+library(Formula)
+library(Hmisc)
+library(ggplot2)
+library(mice)
+library(weights)
+
+rm(table4)
+table4 <- data.frame("IndM-DepM"=as.numeric(), "sig1"=as.character(), 
+                     "IndM-GenX"=as.numeric(), "sig2"=as.character(), 
+                     "DepM-GenX"=as.numeric(), "sig3"=as.character(), stringsAsFactors = FALSE)
+
+data26 <- data22[data22$Group == "IndMill", ]
+data27 <- data22[data22$Group == "DepMill", ]
+data28 <- data22[data22$Group == "GenXer", ]
+
+for (i in 2:7) {
+  table4[i-1, 1] <- wtd.t.test(data26[, i], data27[, i], weight=data26$Final_weights, weighty=data27$Final_weights, samedata=FALSE)$coefficients[3]
+  table4[i-1, 2] <- ifelse(table4[i-1, 1]<0.01, "***", ifelse(table4[i-1, 1]<0.05, "**", ifelse(table4[i-1, 1]<0.1, "*", "")))
+  table4[i-1, 3] <- wtd.t.test(data26[, i], data28[, i], weight=data26$Final_weights, weighty=data28$Final_weights, samedata=FALSE)$coefficients[3]
+  table4[i-1, 4] <- ifelse(table4[i-1, 3]<0.01, "***", ifelse(table4[i-1, 3]<0.05, "**", ifelse(table4[i-1, 3]<0.1, "*", "")))
+  table4[i-1, 5] <- wtd.t.test(data27[, i], data28[, i], weight=data27$Final_weights, weighty=data28$Final_weights, samedata=FALSE)$coefficients[3]
+  table4[i-1, 6] <- ifelse(table4[i-1, 5]<0.01, "***", ifelse(table4[i-1, 5]<0.05, "**", ifelse(table4[i-1, 5]<0.1, "*", "")))
+  rownames(table4)[i-1] <- colnames(data23)[i]
+}
+
+data23 <- data22[data22$Group != "GenXer", ]  # between IndMill vs. DepMill 
+data24 <- data22[data22$Group != "DepMill", ] # between IndMill vs. GenXer 
+data25 <- data22[data22$Group != "IndMill", ] # between DepMill vs. GenXer
+
+for (i in 8:10) {
+  table4[i-1, 1] <- wtd.chi.sq(data23$Group, data23[, i], weight=data23$Final_weights, mean1=TRUE)[3] 
+  table4[i-1, 2] <- ifelse(table4[i-1, 1]<0.01, "***", ifelse(table4[i-1, 1]<0.05, "**", ifelse(table4[i-1, 1]<0.1, "*", "")))
+  table4[i-1, 3] <- wtd.chi.sq(data24$Group, data24[, i], weight=data24$Final_weights, mean1=TRUE)[3]
+  table4[i-1, 4] <- ifelse(table4[i-1, 3]<0.01, "***", ifelse(table4[i-1, 3]<0.05, "**", ifelse(table4[i-1, 3]<0.1, "*", "")))
+  table4[i-1, 5] <- wtd.chi.sq(data25$Group, data25[, i], weight=data25$Final_weights, mean1=TRUE)[3] 
+  table4[i-1, 6] <- ifelse(table4[i-1, 5]<0.01, "***", ifelse(table4[i-1, 5]<0.05, "**", ifelse(table4[i-1, 5]<0.1, "*", "")))
+  rownames(table4)[i-1] <- colnames(data23)[i]
+}
+
+table4 
