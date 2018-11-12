@@ -56,15 +56,20 @@ str(sent00)
 sent01 <- as.character(sent00[, 1])
 
 attfilenames <- paste0("attitude", 1:66, ".png")
-
+plotnames <- paste0("p", 1:66)
+plotnames
 library(scales)
 library(ggplot2)
 library(RColorBrewer)
 library(plyr)
 
-for (i in 1:66) {
+#11, 13, 14, 15, 20, 23, 24, 25, 26, 27, 30,  
+#34, 35, 37, 39, 42, 45, 48, 52, 56, 61, 64
+
+for (i in c(11, 13, 14, 15, 20, 23, 24, 26, 27, 30,  
+            34, 35, 37, 39, 42, 45, 48, 52, 56, 61, 64)) {
   wtcase <- wtsummary(i)
-  df <- data.frame(group, scale, wtcase)
+  df <- data.frame(group, Scale, wtcase)
   # https://stackoverflow.com/questions/33807624/understanding-ddply-error-message
   pct <- ddply(df, .(group), plyr::summarize, pct=round(wtcase/sum(wtcase)*100, 1))
   df <- data.frame(df, pct$pct)
@@ -74,16 +79,19 @@ for (i in 1:66) {
   # http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
   # cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442")#, "#0072B2", "#D55E00", "#CC79A7")
   # https://stackoverflow.com/questions/9563368/create-stacked-barplot-where-each-stack-is-scaled-to-sum-to-100
-  ggplot(df,aes(x = group, y = wtcase, fill = Scale)) + 
+  ggplot(df,aes(x = group, y = wtcase, fill = Scale))+ 
     geom_bar(position = "fill",stat = "identity", width=.7, colour="black", lwd=0.1) +
     scale_fill_brewer(palette="RdYlBu", direction=-1) + 
     # https://stackoverflow.com/questions/8750871/ggplot2-reverse-order-of-scale-brewer
     coord_flip()+
     scale_y_continuous(labels = percent_format()) + 
     xlab("")+
-    ylab(sent01[i]) 
+    ylab(sent01[i])+
+    # http://felixfan.github.io/ggplot2-remove-grid-background-margin/
+    theme(panel.background = element_blank())+
+    theme(legend.position='none')
   
-  ggsave(attfilenames[i])
+  ggsave(width = 8.5, height = 2, dpi = 300, attfilenames[i])
 }
 
 

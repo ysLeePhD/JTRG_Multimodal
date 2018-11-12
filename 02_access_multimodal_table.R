@@ -224,10 +224,12 @@ xvars4 <- c("D1A", "D1B", "D1C", "walkscore", "bikescore", "transitscore",
 
 wt.table4a <- svydesign(ids = ~ 1, data = data22, weights = ~ Final_weights)
 wt.table4b <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.table4a)
-print(wt.table4b, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
+write.csv(print(wt.table4b, catDigits=3, contDigits=3, test=TRUE, smd = FALSE), 
+          file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/table4.csv")
 
 wt.table4c <- svyCreateTableOne(vars = xvars4, strata ="RegionHome", data = wt.table4a)
-print(wt.table4c, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
+write.csv(print(wt.table4c, catDigits=3, contDigits=3, test=TRUE, smd = FALSE), 
+          file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/table5.csv")
 
 library(lattice)
 library(Formula)
@@ -257,7 +259,7 @@ for (i in 2:7) {
   table4[i-1, 4] <- ifelse(table4[i-1, 3]<0.01, "***", ifelse(table4[i-1, 3]<0.05, "**", ifelse(table4[i-1, 3]<0.1, "*", "")))
   table4[i-1, 5] <- wtd.t.test(data27[, i], data28[, i], weight=data27$Final_weights, weighty=data28$Final_weights, samedata=FALSE)$coefficients[3]
   table4[i-1, 6] <- ifelse(table4[i-1, 5]<0.01, "***", ifelse(table4[i-1, 5]<0.05, "**", ifelse(table4[i-1, 5]<0.1, "*", "")))
-  rownames(table4)[i-1] <- colnames(data23)[i]
+  rownames(table4)[i-1] <- colnames(data26)[i]
 }
 
 data23 <- data22[data22$Group != "GenXer", ]  # between IndMill vs. DepMill 
