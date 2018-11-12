@@ -230,7 +230,9 @@ xvars2 <- c("Gender", "AgeGroup", "Race", "Hispanic", "Education", "hhincome", "
 
 wt.table1 <- svydesign(ids = ~ 1, data = data02, weights = ~ Final_weights)
 wt.table2 <- svyCreateTableOne(vars = xvars2, strata ="Group", data = wt.table1)
-print(wt.table2, catDigits=3, contDigits=3, test=TRUE, smd = TRUE)
+write.csv(print(wt.table2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE), 
+          file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/table1_3.csv")
+
 
 library(lattice)
 library(Formula)
@@ -281,4 +283,6 @@ for (i in 11:33) {
 }
 
 table1
+write.csv(table1, 
+          file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/table1_3_sig.csv")
 

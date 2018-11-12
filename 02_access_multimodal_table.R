@@ -74,7 +74,13 @@ quantile(data21$pct_commute_transit, probs=c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0
 quantile(data21$pct_commute_active, probs=c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99))
 quantile(data21$pct_commute_other, probs=c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99))
 
-hist(data21$pct_commute_car, freq=FALSE, breaks=seq(0, 100, by=1.25))
+table(data21$RegionHome)
+hist(data21[data21$RegionHome=="MTC", ]$pct_commute_car, freq=FALSE, breaks=seq(0, 100, by=1.25))
+hist(data21[data21$RegionHome=="SCAG", ]$pct_commute_car, freq=FALSE, breaks=seq(0, 100, by=1.25))
+hist(data21[data21$RegionHome=="Central Valley", ]$pct_commute_car, freq=FALSE, breaks=seq(0, 100, by=1.25))
+hist(data21[data21$RegionHome=="NorCal and Others", ]$pct_commute_car, freq=FALSE, breaks=seq(0, 100, by=1.25))
+hist(data21[data21$RegionHome=="SANDAG", ]$pct_commute_car, freq=FALSE, breaks=seq(0, 100, by=1.25))
+
 hist(data21$pct_commute_transit, freq=FALSE, breaks=seq(0, 100, by=1.25))
 hist(data21$pct_commute_active, freq=FALSE, breaks=seq(0, 100, by=1.25))
 hist(data21$pct_commute_other, freq=FALSE, breaks=seq(0, 100, by=1.25))
@@ -200,6 +206,7 @@ data21$modality_last <- ifelse(data21$lc.multi==1, 3, data21$modality_last)
 data21$modality_last <- ifelse(data21$modality_last==0, NA, data21$modality_last)
 data21$modality_last <- as.factor(data21$modality_last)
 levels(data21$modality_last) <- c("Mono car", "Mono non-car", "Multimodal") 
+table(data21$modality_last)
 
 data22 <- data21[, c("PID", "D1A", "D1B", "D1C", "walkscore", "bikescore", "transitscore", 
                      "modality_commutes", "modality_leisure", "modality_last", "Group", "RegionHome", "Final_weights")]
@@ -267,4 +274,4 @@ for (i in 8:10) {
   rownames(table4)[i-1] <- colnames(data23)[i]
 }
 
-table4 
+table4
