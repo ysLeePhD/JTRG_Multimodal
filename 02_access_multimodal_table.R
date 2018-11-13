@@ -4,7 +4,7 @@ library(foreign)
 data00 <- read.csv(file="M:/Millennial_CA/02_raw_data/11_latest_update/GenY_Syntax6_Step1_temp.csv")
 colnames(data00)
 
-data21 <- data00[, c(1, 181:334, 727:729, 794:796, 799, 803, 116, 674)]
+data21 <- data00[, c(1, 181:334, 727:729, 794:796, 799, 803, 468, 116, 674)]
 colnames(data21)
 
 data21$PID <- data21$ï..PID
@@ -20,6 +20,7 @@ colnames(data21)
 data21$bikescore <- ifelse(is.na(data21$bikescore)==TRUE, 0, data21$bikescore)
 data21$transitscore <- ifelse(is.na(data21$transitscore)==TRUE, 0, data21$transitscore)
 
+data21$H11car_VMT <- ifelse(data21$H11car_VMT<0, NA, data21$H11car_VMT)
 head(data21)
 
 
@@ -209,9 +210,17 @@ levels(data21$modality_last) <- c("Mono car", "Mono non-car", "Multimodal")
 table(data21$modality_last)
 
 data22 <- data21[, c("PID", "D1A", "D1B", "D1C", "walkscore", "bikescore", "transitscore", 
-                     "modality_commutes", "modality_leisure", "modality_last", "Group", "RegionHome", "Final_weights")]
-colnames(data22)
+                     "modality_commutes", "modality_leisure", "modality_last", "H11car_VMT", "Group", "RegionHome", "Final_weights")]
 
+
+alltr <- read.csv("M:/Millennial_CA/17_JTRG_multimodal/04_Alltransit/TRscore_full.csv")
+alltr <- alltr[, c("pid", "TQ1")]
+alltr$PID <- alltr$pid
+alltr$pid <- NULL
+alltr$TQ1 <- as.numeric(as.character(alltr$TQ1))
+
+data22 <- merge(data22, alltr, by.x="PID", by.y="PID")
+colnames(data22)
 
 library(tableone)
 library(grid) 
@@ -219,17 +228,154 @@ library(Matrix)
 library(survival)
 library(survey)
 
-xvars4 <- c("D1A", "D1B", "D1C", "walkscore", "bikescore", "transitscore", 
-            "modality_commutes", "modality_leisure", "modality_last")
+xvars4 <- c("D1A", "D1B", "D1C", "walkscore", "bikescore", "TQ1", 
+            "modality_commutes", "modality_leisure", "modality_last", "H11car_VMT")
 
 wt.table4a <- svydesign(ids = ~ 1, data = data22, weights = ~ Final_weights)
 wt.table4b <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.table4a)
+print(wt.table4b, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
 write.csv(print(wt.table4b, catDigits=3, contDigits=3, test=TRUE, smd = FALSE), 
           file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/table4.csv")
 
 wt.table4c <- svyCreateTableOne(vars = xvars4, strata ="RegionHome", data = wt.table4a)
+print(wt.table4c, catDigits=3, contDigits=3, test=TRUE, smd = FALSE) 
 write.csv(print(wt.table4c, catDigits=3, contDigits=3, test=TRUE, smd = FALSE), 
           file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/table5.csv")
+
+
+
+# Figure 3. Accessibility/multimodality for two regions, MTC and SCAG. 
+
+table(data22$RegionHome)
+
+myfunction01 <- function(x){
+  a <- as.numeric(gregexpr(pattern="\\(", x))
+  b <- as.numeric(gregexpr(pattern="\\)", x))
+  c <- round(as.numeric(substring(x, a+1, b-1)), 1)
+  return(c)
+}
+myfunction02 <- function(x){
+  a <- as.numeric(gregexpr(pattern="\\(", x))
+  b <- round(as.numeric(substring(x, 1, a-2)), 1)
+  return(b)
+}
+
+rm(fig4, temp01, temp02, temp03, temp04, temp05, temp06)
+fig4 <- data.frame(RegionHome=character(), Group=character(), 
+                   walkscore=double(), multimodal=double(), VMD=double(), stringsAsFactors=FALSE)
+
+data22sf <- data22[data22$RegionHome=="MTC",]
+wt.figure3sf1 <- svydesign(ids = ~ 1, data = data22sf, weights = ~ Final_weights)
+wt.figure3sf2 <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.figure3sf1)
+print(wt.figure3sf2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
+#write.csv(print(wt.figure3sf2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE), 
+#          file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/figure3sf2.csv")
+temp01 <- print(wt.figure3sf2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 19, 20), ]
+fig4[1:3, 1] <- "MTC"
+fig4[1:3, 2] <- c("IndMill", "DepMill", "GenXer")
+fig4[1:3, 3] <- myfunction02(temp01[1, 1:3])  
+fig4[1:3, 4] <- myfunction01(temp01[2, 1:3])  
+fig4[1:3, 5] <- myfunction02(temp01[3, 1:3])  
+
+data22la <- data22[data22$RegionHome=="SCAG",]
+wt.figure3la1 <- svydesign(ids = ~ 1, data = data22la, weights = ~ Final_weights)
+wt.figure3la2 <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.figure3la1)
+print(wt.figure3la2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
+#write.csv(print(wt.figure3lab, catDigits=3, contDigits=3, test=TRUE, smd = FALSE), 
+#          file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/figure3la2.csv")
+temp02 <- print(wt.figure3la2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 19, 20), ]
+fig4[4:6, 1] <- "SCAG"
+fig4[4:6, 2] <- c("IndMill", "DepMill", "GenXer")
+fig4[4:6, 3] <- myfunction02(temp02[1, 1:3])  
+fig4[4:6, 4] <- myfunction01(temp02[2, 1:3])  
+fig4[4:6, 5] <- myfunction02(temp02[3, 1:3])
+
+data22scg <- data22[data22$RegionHome=="SACOG",]
+wt.figure3scg1 <- svydesign(ids = ~ 1, data = data22scg, weights = ~ Final_weights)
+wt.figure3scg2 <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.figure3scg1)
+print(wt.figure3scg2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
+temp03 <- print(wt.figure3scg2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 19, 20), ]
+fig4[7:9, 1] <- "SACOG"
+fig4[7:9, 2] <- c("IndMill", "DepMill", "GenXer")
+fig4[7:9, 3] <- myfunction02(temp03[1, 1:3])  
+fig4[7:9, 4] <- myfunction01(temp03[2, 1:3])  
+fig4[7:9, 5] <- myfunction02(temp03[3, 1:3])
+
+data22sd <- data22[data22$RegionHome=="SANDAG",]
+wt.figure3sd1 <- svydesign(ids = ~ 1, data = data22sd, weights = ~ Final_weights)
+wt.figure3sd2 <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.figure3sd1)
+print(wt.figure3sd2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
+temp04 <- print(wt.figure3sd2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 19, 20), ]
+fig4[10:12, 1] <- "SANDAG"
+fig4[10:12, 2] <- c("IndMill", "DepMill", "GenXer")
+fig4[10:12, 3] <- myfunction02(temp04[1, 1:3]) # walkscore 
+fig4[10:12, 4] <- myfunction01(temp04[2, 1:3]) # last commute multimodal 
+fig4[10:12, 5] <- myfunction02(temp04[3, 1:3])
+
+data22cv <- data22[data22$RegionHome=="Central Valley",]
+wt.figure3cv1 <- svydesign(ids = ~ 1, data = data22cv, weights = ~ Final_weights)
+wt.figure3cv2 <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.figure3cv1)
+print(wt.figure3cv2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
+temp05 <- print(wt.figure3cv2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 19, 20), ]
+fig4[13:15, 1] <- "Central Valley"
+fig4[13:15, 2] <- c("IndMill", "DepMill", "GenXer")
+fig4[13:15, 3] <- myfunction02(temp05[1, 1:3]) # walkscore 
+fig4[13:15, 4] <- myfunction01(temp05[2, 1:3]) # last commute multimodal 
+fig4[13:15, 5] <- myfunction02(temp05[3, 1:3])
+
+data22nth <- data22[data22$RegionHome=="NorCal and Others",]
+wt.figure3nth1 <- svydesign(ids = ~ 1, data = data22nth, weights = ~ Final_weights)
+wt.figure3nth2 <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.figure3nth1)
+print(wt.figure3nth2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
+temp06 <- print(wt.figure3nth2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 19, 20), ]
+fig4[16:18, 1] <- "NorCal and Others"
+fig4[16:18, 2] <- c("IndMill", "DepMill", "GenXer")
+fig4[16:18, 3] <- myfunction02(temp06[1, 1:3]) # walkscore 
+fig4[16:18, 4] <- myfunction01(temp06[2, 1:3]) # last commute multimodal 
+fig4[16:18, 5] <- myfunction02(temp06[3, 1:3]) 
+
+fig4$RegionHome <- factor(fig4$RegionHome, ordered=TRUE)
+fig4$Group <- factor(fig4$Group, levels=c("IndMill", "DepMill", "GenXer"), ordered=TRUE)
+#fig4$rowno <- factor(rownames(fig4), ordered=TRUE) # need to have a unique ID column in the factor class
+#fig4 <- fig4[, c(6, 1:5)]
+fig4$VMDsq <- fig4$VMD*fig4$VMD*fig4$VMD*fig4$VMD*fig4$VMD*fig4$VMD
+
+# http://www.cookbook-r.com/Manipulating_data/Converting_data_between_wide_and_long_format/
+#library(tidyr)
+#colnames(fig4)
+#fig4_long <- tidyr::gather(fig4, Group, value, IndMill, DepMill, GenXer, factor_key=TRUE)
+#fig4_long$rowno <- NULL
+#fig4_long$Group <- factor(fig4_long$Group, ordered=TRUE)
+
+fig4
+fig4[fig4$Group=="DepMill", ]
+
+#https://ggplot2.tidyverse.org/reference/scale_size.html
+#http://t-redactyl.io/blog/2016/02/creating-plots-in-r-using-ggplot2-part-6-weighted-scatterplots.html
+ggplot(data=fig4, aes(x=fig4$walkscore, y=fig4$multimodal, size=fig4$VMD)) +
+  geom_point(aes(colour=fig4$Group), pch=16, alpha=1) + 
+  geom_point(shape=21, colour="black", alpha=1) + 
+  geom_text(aes(label=fig4$RegionHome), size=2.5) + 
+  scale_color_brewer(palette="RdYlGn", direction=-1) + 
+  labs(x = "Walkscore", y = "Percent multimodal travelers for the last commute") +
+  ylim(0, 25) + 
+  xlim(30, 65) + 
+  scale_size(range = c(10, 45)) +
+  theme_bw() +
+  guides(size=F,alpha=F) + 
+  theme(legend.position = "bottom", legend.direction = "horizontal", 
+        legend.text=element_text(size=10)) + 
+  labs(colour = "Demographic groups")
+
+ggsave("Fig4.jpg", device="jpeg", width=9, height=6, units="in", dpi=600)
+
+  #scale_size_identity(aes=(size=fig4$VMDsq))
+  #scale_size_manual(values=c(2,3,4))
+  #scale_color_manual(values=c("green", "yellow", "red"))
+
+
+
+
 
 library(lattice)
 library(Formula)
