@@ -49,7 +49,8 @@ modefreq <- function(x){
   return(a) 
 }
 
-
+max.value <- 90
+min.value <- 10 
 
 # modality styles for commute trips 
 
@@ -87,10 +88,10 @@ hist(data21$pct_commute_active, freq=FALSE, breaks=seq(0, 100, by=1.25))
 hist(data21$pct_commute_other, freq=FALSE, breaks=seq(0, 100, by=1.25))
 
 data21$modality_commutes <- NA 
-data21$modality_commutes <- ifelse(data21$pct_commute_car>=90, "Monomodal driver", data21$modality_commutes) 
-data21$modality_commutes <- ifelse(data21$pct_commute_car<90 & data21$pct_commute_car>=10, 
+data21$modality_commutes <- ifelse(data21$pct_commute_car>=max.value, "Monomodal driver", data21$modality_commutes) 
+data21$modality_commutes <- ifelse(data21$pct_commute_car<max.value & data21$pct_commute_car>=min.value, 
                                    "Multimodal driver", data21$modality_commutes) 
-data21$modality_commutes <- ifelse(data21$pct_commute_car<10 & data21$pct_commute_car>=0, "Multimodal non-driver", data21$modality_commutes) 
+data21$modality_commutes <- ifelse(data21$pct_commute_car<min.value & data21$pct_commute_car>=0, "Multimodal non-driver", data21$modality_commutes) 
 data21$modality_commutes <- ifelse(data21$commute_total==0, NA, data21$modality_commutes) 
 data21$modality_commutes <- factor(data21$modality_commutes, 
                                    levels=c("Monomodal driver", "Multimodal driver", 
@@ -124,10 +125,10 @@ hist(data21$pct_leisure_active, freq=FALSE, breaks=seq(0, 100, by=1.25))
 hist(data21$pct_leisure_other, freq=FALSE, breaks=seq(0, 100, by=1.25))
 
 data21$modality_leisure <- NA 
-data21$modality_leisure <- ifelse(data21$pct_leisure_car>=90, "Monomodal driver", data21$modality_leisure) 
-data21$modality_leisure <- ifelse(data21$pct_leisure_car<90 & data21$pct_leisure_car>=10, 
+data21$modality_leisure <- ifelse(data21$pct_leisure_car>=max.value, "Monomodal driver", data21$modality_leisure) 
+data21$modality_leisure <- ifelse(data21$pct_leisure_car<max.value & data21$pct_leisure_car>=min.value, 
                                    "Multimodal driver", data21$modality_leisure) 
-data21$modality_leisure <- ifelse(data21$pct_leisure_car<10 & data21$pct_leisure_car>=0, "Multimodal non-driver", 
+data21$modality_leisure <- ifelse(data21$pct_leisure_car<min.value & data21$pct_leisure_car>=0, "Multimodal non-driver", 
                                   data21$modality_leisure) 
 data21$modality_leisure <- ifelse(data21$leisure_total==0, NA, data21$modality_leisure) 
 data21$modality_leisure <- factor(data21$modality_leisure, 
@@ -231,18 +232,44 @@ library(survey)
 xvars4 <- c("D1A", "D1B", "D1C", "walkscore", "bikescore", "TQ1", 
             "modality_commutes", "modality_leisure", "modality_last", "H11car_VMT")
 
+myfunction01 <- function(x){
+  a <- as.numeric(gregexpr(pattern="\\(", x))
+  b <- as.numeric(gregexpr(pattern="\\)", x))
+  c <- round(as.numeric(substring(x, a+1, b-1)), 1)
+  return(c)
+}
+myfunction02 <- function(x){
+  a <- as.numeric(gregexpr(pattern="\\(", x))
+  b <- round(as.numeric(substring(x, 1, a-2)), 1)
+  return(b)
+}
+
 wt.table4a <- svydesign(ids = ~ 1, data = data22, weights = ~ Final_weights)
 wt.table4b <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.table4a)
 print(wt.table4b, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
-write.csv(print(wt.table4b, catDigits=3, contDigits=3, test=TRUE, smd = FALSE), 
-          file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/table4.csv")
+#write.csv(print(wt.table4b, catDigits=3, contDigits=3, test=TRUE, smd = FALSE), 
+#          file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/table4.csv")
 
-wt.table4c <- svyCreateTableOne(vars = xvars4, strata ="RegionHome", data = wt.table4a)
-print(wt.table4c, catDigits=3, contDigits=3, test=TRUE, smd = FALSE) 
-write.csv(print(wt.table4c, catDigits=3, contDigits=3, test=TRUE, smd = FALSE), 
+table4c <- print(wt.table4b, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(9:11, 13:15, 17:19), 1:3]
+table4c[, 1:3] <- myfunction01(table4c[, 1:3])
+table4c <- as.data.frame(table4c, stringsAsFactors=FALSE)
+table4c
+
+wt.table5a <- svydesign(ids = ~ 1, data = data22, weights = ~ Final_weights)
+wt.table5b <- svyCreateTableOne(vars = xvars4, strata ="RegionHome", data = wt.table5a)
+print(wt.table5b, catDigits=3, contDigits=3, test=TRUE, smd = FALSE) 
+#write.csv(print(wt.table5b, catDigits=3, contDigits=3, test=TRUE, smd = FALSE), 
+#          file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/table5.csv")
+
+table5c <- print(wt.table5b, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(9:11, 13:15, 17:19), 1:6]
+table5c[, 1:6] <- myfunction01(table5c[, 1:6])
+table5c <- as.data.frame(table5c, stringsAsFactors=FALSE)
+table5c 
+
+temp01 <- cbind(table4c, table5c)
+rownames(temp01) <- c("comm_monodr", "comm_multidr", "comm_multi", "leis_monodr", "leis_multidr", "leis_multi", "last_car", "last_noncar", "last_muulti" )
+write.csv(as.data.frame(t(temp01), stringsAsFactors=FALSE), 
           file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/table5.csv")
-
-
 
 # Figure 3. Accessibility/multimodality for two regions, MTC and SCAG. 
 
@@ -268,8 +295,20 @@ data22sf <- data22[data22$RegionHome=="MTC",]
 wt.figure3sf1 <- svydesign(ids = ~ 1, data = data22sf, weights = ~ Final_weights)
 wt.figure3sf2 <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.figure3sf1)
 print(wt.figure3sf2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
-#write.csv(print(wt.figure3sf2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE), 
-#          file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/figure3sf2.csv")
+write.csv(print(wt.figure3sf2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE), 
+          file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/figure3sf2.csv")
+
+temp00 <- print(wt.figure3sf2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(9:11, 13:15, 17:19), ]
+fig3a <- data.frame(comm_monodr=double(), comm_multidr=double(), comm_multi=double(), 
+                    leis_monodr=double(), leis_multidr=double(), leis_multi=double(), 
+                    last_car=double(),    last_noncar=double(),  last_muulti=double(), 
+                    stringsAsFactors=FALSE)
+fig3a[1, 1:9] <- myfunction01(temp00[1:9, 1])  
+fig3a[2, 1:9] <- myfunction01(temp00[1:9, 2])  
+fig3a[3, 1:9] <- myfunction01(temp00[1:9, 3])  
+rownames(fig3a) <- c("IndMill", "DepMill", "GenXer")
+write.csv(fig3a, file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/figure3a.csv")
+
 temp01 <- print(wt.figure3sf2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 19, 20), ]
 fig4[1:3, 1] <- "MTC"
 fig4[1:3, 2] <- c("IndMill", "DepMill", "GenXer")
@@ -281,8 +320,20 @@ data22la <- data22[data22$RegionHome=="SCAG",]
 wt.figure3la1 <- svydesign(ids = ~ 1, data = data22la, weights = ~ Final_weights)
 wt.figure3la2 <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.figure3la1)
 print(wt.figure3la2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
-#write.csv(print(wt.figure3lab, catDigits=3, contDigits=3, test=TRUE, smd = FALSE), 
-#          file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/figure3la2.csv")
+write.csv(print(wt.figure3la2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE), 
+          file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/figure3la2.csv")
+
+temp00 <- print(wt.figure3la2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(9:11, 13:15, 17:19), ]
+fig3b <- data.frame(comm_monodr=double(), comm_multidr=double(), comm_multi=double(), 
+                    leis_monodr=double(), leis_multidr=double(), leis_multi=double(), 
+                    last_car=double(),    last_noncar=double(),  last_muulti=double(), 
+                    stringsAsFactors=FALSE)
+fig3b[1, 1:9] <- myfunction01(temp00[1:9, 1])  
+fig3b[2, 1:9] <- myfunction01(temp00[1:9, 2])  
+fig3b[3, 1:9] <- myfunction01(temp00[1:9, 3])  
+rownames(fig3b) <- c("IndMill", "DepMill", "GenXer")
+write.csv(fig3b, file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/figure3b.csv")
+
 temp02 <- print(wt.figure3la2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 19, 20), ]
 fig4[4:6, 1] <- "SCAG"
 fig4[4:6, 2] <- c("IndMill", "DepMill", "GenXer")
@@ -395,8 +446,11 @@ table4 <- data.frame("IndM-DepM"=as.numeric(), "sig1"=as.character(),
                      "DepM-GenX"=as.numeric(), "sig3"=as.character(), stringsAsFactors = FALSE)
 
 data26 <- data22[data22$Group == "IndMill", ]
+data26 <- data26[, c(1:6, 15, 8:14)]
 data27 <- data22[data22$Group == "DepMill", ]
+data27 <- data27[, c(1:6, 15, 8:14)]
 data28 <- data22[data22$Group == "GenXer", ]
+data28 <- data28[, c(1:6, 15, 8:14)]
 
 for (i in 2:7) {
   table4[i-1, 1] <- wtd.t.test(data26[, i], data27[, i], weight=data26$Final_weights, weighty=data27$Final_weights, samedata=FALSE)$coefficients[3]
