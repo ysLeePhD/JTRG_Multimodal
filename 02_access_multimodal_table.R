@@ -203,16 +203,16 @@ data21$lc.mono_noncar <- ifelse((data21$last_transit==1 | data21$last_active==1 
 data21$lc.multi       <- ifelse(data21$last_car+data21$last_transit+data21$last_active+data21$last_other>0 & data21$lc.mono_car==0 & 
                                   data21$lc.mono_noncar==0, 1, 0)
 data21$modality_last <- ifelse(data21$lc.mono_car==1, 1, 0)
-data21$modality_last <- ifelse(data21$lc.mono_noncar==1, 2, data21$modality_last)
-data21$modality_last <- ifelse(data21$lc.multi==1, 3, data21$modality_last)
+data21$modality_last <- ifelse(data21$lc.multi==1, 2, data21$modality_last)
+data21$modality_last <- ifelse(data21$lc.mono_noncar==1, 3, data21$modality_last)
 data21$modality_last <- ifelse(data21$modality_last==0, NA, data21$modality_last)
 data21$modality_last <- as.factor(data21$modality_last)
-levels(data21$modality_last) <- c("Mono car", "Mono non-car", "Multimodal") 
+levels(data21$modality_last) <- c("Mono car", "Multimodal", "Mono non-car") 
 table(data21$modality_last)
 
 data22 <- data21[, c("PID", "D1A", "D1B", "D1C", "walkscore", "bikescore", "transitscore", 
                      "modality_commutes", "modality_leisure", "modality_last", "H11car_VMT", "Group", "RegionHome", "Final_weights")]
-
+ 
 
 alltr <- read.csv("M:/Millennial_CA/17_JTRG_multimodal/04_Alltransit/TRscore_full.csv")
 alltr <- alltr[, c("pid", "TQ1")]
@@ -267,7 +267,7 @@ table5c <- as.data.frame(table5c, stringsAsFactors=FALSE)
 table5c 
 
 temp01 <- cbind(table4c, table5c)
-rownames(temp01) <- c("comm_monodr", "comm_multidr", "comm_multi", "leis_monodr", "leis_multidr", "leis_multi", "last_car", "last_noncar", "last_muulti" )
+rownames(temp01) <- c("comm_monodr", "comm_multidr", "comm_multi", "leis_monodr", "leis_multidr", "leis_multi", "last_car", "last_muulti", "last_noncar")
 write.csv(as.data.frame(t(temp01), stringsAsFactors=FALSE), 
           file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/table5.csv")
 
@@ -301,7 +301,7 @@ write.csv(print(wt.figure3sf2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE
 temp00 <- print(wt.figure3sf2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(9:11, 13:15, 17:19), ]
 fig3a <- data.frame(comm_monodr=double(), comm_multidr=double(), comm_multi=double(), 
                     leis_monodr=double(), leis_multidr=double(), leis_multi=double(), 
-                    last_car=double(),    last_noncar=double(),  last_muulti=double(), 
+                    last_car=double(),    last_muulti=double(),  last_noncar=double(), 
                     stringsAsFactors=FALSE)
 fig3a[1, 1:9] <- myfunction01(temp00[1:9, 1])  
 fig3a[2, 1:9] <- myfunction01(temp00[1:9, 2])  
@@ -309,7 +309,7 @@ fig3a[3, 1:9] <- myfunction01(temp00[1:9, 3])
 rownames(fig3a) <- c("IndMill", "DepMill", "GenXer")
 write.csv(fig3a, file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/figure3a.csv")
 
-temp01 <- print(wt.figure3sf2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 19, 20), ]
+temp01 <- print(wt.figure3sf2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 18, 20), ]
 fig4[1:3, 1] <- "MTC"
 fig4[1:3, 2] <- c("IndMill", "DepMill", "GenXer")
 fig4[1:3, 3] <- myfunction02(temp01[1, 1:3])  
@@ -326,7 +326,7 @@ write.csv(print(wt.figure3la2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE
 temp00 <- print(wt.figure3la2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(9:11, 13:15, 17:19), ]
 fig3b <- data.frame(comm_monodr=double(), comm_multidr=double(), comm_multi=double(), 
                     leis_monodr=double(), leis_multidr=double(), leis_multi=double(), 
-                    last_car=double(),    last_noncar=double(),  last_muulti=double(), 
+                    last_car=double(),    last_muulti=double(),  last_noncar=double(), 
                     stringsAsFactors=FALSE)
 fig3b[1, 1:9] <- myfunction01(temp00[1:9, 1])  
 fig3b[2, 1:9] <- myfunction01(temp00[1:9, 2])  
@@ -334,7 +334,7 @@ fig3b[3, 1:9] <- myfunction01(temp00[1:9, 3])
 rownames(fig3b) <- c("IndMill", "DepMill", "GenXer")
 write.csv(fig3b, file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/figure3b.csv")
 
-temp02 <- print(wt.figure3la2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 19, 20), ]
+temp02 <- print(wt.figure3la2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 18, 20), ]
 fig4[4:6, 1] <- "SCAG"
 fig4[4:6, 2] <- c("IndMill", "DepMill", "GenXer")
 fig4[4:6, 3] <- myfunction02(temp02[1, 1:3])  
@@ -345,7 +345,7 @@ data22scg <- data22[data22$RegionHome=="SACOG",]
 wt.figure3scg1 <- svydesign(ids = ~ 1, data = data22scg, weights = ~ Final_weights)
 wt.figure3scg2 <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.figure3scg1)
 print(wt.figure3scg2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
-temp03 <- print(wt.figure3scg2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 19, 20), ]
+temp03 <- print(wt.figure3scg2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 18, 20), ]
 fig4[7:9, 1] <- "SACOG"
 fig4[7:9, 2] <- c("IndMill", "DepMill", "GenXer")
 fig4[7:9, 3] <- myfunction02(temp03[1, 1:3])  
@@ -356,7 +356,7 @@ data22sd <- data22[data22$RegionHome=="SANDAG",]
 wt.figure3sd1 <- svydesign(ids = ~ 1, data = data22sd, weights = ~ Final_weights)
 wt.figure3sd2 <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.figure3sd1)
 print(wt.figure3sd2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
-temp04 <- print(wt.figure3sd2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 19, 20), ]
+temp04 <- print(wt.figure3sd2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 18, 20), ]
 fig4[10:12, 1] <- "SANDAG"
 fig4[10:12, 2] <- c("IndMill", "DepMill", "GenXer")
 fig4[10:12, 3] <- myfunction02(temp04[1, 1:3]) # walkscore 
@@ -367,7 +367,7 @@ data22cv <- data22[data22$RegionHome=="Central Valley",]
 wt.figure3cv1 <- svydesign(ids = ~ 1, data = data22cv, weights = ~ Final_weights)
 wt.figure3cv2 <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.figure3cv1)
 print(wt.figure3cv2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
-temp05 <- print(wt.figure3cv2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 19, 20), ]
+temp05 <- print(wt.figure3cv2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 18, 20), ]
 fig4[13:15, 1] <- "Central Valley"
 fig4[13:15, 2] <- c("IndMill", "DepMill", "GenXer")
 fig4[13:15, 3] <- myfunction02(temp05[1, 1:3]) # walkscore 
@@ -378,7 +378,7 @@ data22nth <- data22[data22$RegionHome=="NorCal and Others",]
 wt.figure3nth1 <- svydesign(ids = ~ 1, data = data22nth, weights = ~ Final_weights)
 wt.figure3nth2 <- svyCreateTableOne(vars = xvars4, strata ="Group", data = wt.figure3nth1)
 print(wt.figure3nth2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)
-temp06 <- print(wt.figure3nth2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 19, 20), ]
+temp06 <- print(wt.figure3nth2, catDigits=3, contDigits=3, test=TRUE, smd = FALSE)[c(5, 18, 20), ]
 fig4[16:18, 1] <- "NorCal and Others"
 fig4[16:18, 2] <- c("IndMill", "DepMill", "GenXer")
 fig4[16:18, 3] <- myfunction02(temp06[1, 1:3]) # walkscore 
@@ -401,24 +401,27 @@ fig4$VMDsq <- fig4$VMD*fig4$VMD*fig4$VMD*fig4$VMD*fig4$VMD*fig4$VMD
 fig4
 fig4[fig4$Group=="DepMill", ]
 
+
+library(ggplot2)
 #https://ggplot2.tidyverse.org/reference/scale_size.html
 #http://t-redactyl.io/blog/2016/02/creating-plots-in-r-using-ggplot2-part-6-weighted-scatterplots.html
 ggplot(data=fig4, aes(x=fig4$walkscore, y=fig4$multimodal, size=fig4$VMD)) +
-  geom_point(aes(colour=fig4$Group), pch=16, alpha=1) + 
-  geom_point(shape=21, colour="black", alpha=1) + 
-  geom_text(aes(label=fig4$RegionHome), size=2.5) + 
+  geom_point(aes(colour=fig4$Group), pch=16, alpha=0.85) + 
+  geom_point(shape=21, colour="black", alpha=0.8) + 
+  geom_text(aes(label=fig4$RegionHome), size=2.5) + #vjust = +0.25,  
+  #geom_text(aes(label=fig4$VMD), vjust = +1.5, size=2.5) + 
   scale_color_brewer(palette="RdYlGn", direction=-1) + 
   labs(x = "Walkscore", y = "Percent multimodal travelers for the last commute") +
   ylim(0, 25) + 
   xlim(30, 65) + 
-  scale_size(range = c(10, 45)) +
+  scale_size(range = c(10, 50)) +
   theme_bw() +
   guides(size=F,alpha=F) + 
   theme(legend.position = "bottom", legend.direction = "horizontal", 
         legend.text=element_text(size=10)) + 
   labs(colour = "Demographic groups")
 
-ggsave("Fig4.jpg", device="jpeg", width=9, height=6, units="in", dpi=600)
+ggsave("M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/Revised/Figure4.jpg", device="jpeg", width=9, height=6, units="in", dpi=600)
 
   #scale_size_identity(aes=(size=fig4$VMDsq))
   #scale_size_manual(values=c(2,3,4))

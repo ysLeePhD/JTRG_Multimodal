@@ -128,20 +128,68 @@ library(ggplot2)
 library(mice)
 library(weights)
 
-wtd.chi.sq.results <- data.frame(Chisq=as.numeric(), df=as.integer(), p.value=as.numeric(), sig=as.character())
-wtd.chi.sq.results$sig <- as.character(wtd.chi.sq.results$sig)
 # options(stringsAsFactors = FALSE)
 # https://stackoverflow.com/questions/16819956/warning-message-in-invalid-factor-level-na-generated
 
+table(data11$Group)
+data12 <- data11[data11$Group != "GenXer", ]
+data12$Group <- factor(data12$Group, levels=c("IndMill", "DepMill"), ordered=TRUE)
+data13 <- data11[data11$Group != "DelMill", ]
+data13$Group <- factor(data13$Group, levels=c("IndMill", "GenXer"), ordered=TRUE)
+data14 <- data11[data11$Group != "IndMill", ]
+data14$Group <- factor(data14$Group, levels=c("DepMill", "GenXer"), ordered=TRUE)
+
+
+rm(wtd.chi.sq.results1, wtd.chi.sq.results2, wtd.chi.sq.results3)
+wtd.chi.sq.results1 <- data.frame(Chisq1=as.numeric(), df1=as.integer(), p.value1=as.numeric(), sig1=as.character())
+wtd.chi.sq.results1$sig1 <- as.character(wtd.chi.sq.results1$sig1)
 # https://cran.r-project.org/web/packages/weights/weights.pdf
 for (i in 1:66){
-  a <- wtd.chi.sq(data11$Group, data11[, i], weight=data11$Final_weights, mean1=FALSE)
-  wtd.chi.sq.results[i, 1] <- a[1]
-  wtd.chi.sq.results[i, 2] <- a[2]
-  wtd.chi.sq.results[i, 3] <- a[3]
-  wtd.chi.sq.results[i, 4] <- ifelse(a[3]<0.01, "***", ifelse(a[3]<0.05, "**", ifelse(a[3]<0.1, "*", "")))
+  a <- wtd.chi.sq(data12$Group, data12[, i], weight=data12$Final_weights, mean1=FALSE)
+  wtd.chi.sq.results1[i, 1] <- a[1]
+  wtd.chi.sq.results1[i, 2] <- a[2]
+  wtd.chi.sq.results1[i, 3] <- a[3]
+  wtd.chi.sq.results1[i, 4] <- ifelse(a[3]<0.01, "***", ifelse(a[3]<0.05, "**", ifelse(a[3]<0.1, "*", "")))
 }
+wtd.chi.sq.results1$varname <- colnames(data11)[1:66]
+wtd.chi.sq.results1 <- wtd.chi.sq.results1[, c(5, 1:4)]
+wtd.chi.sq.results1
 
-wtd.chi.sq.results$varname <- colnames(data11)[1:66]
-wtd.chi.sq.results <- wtd.chi.sq.results[, c(5, 1:4)]
+
+wtd.chi.sq.results2 <- data.frame(Chisq2=as.numeric(), df2=as.integer(), p.value2=as.numeric(), sig2=as.character())
+wtd.chi.sq.results2$sig2 <- as.character(wtd.chi.sq.results2$sig2)
+# https://cran.r-project.org/web/packages/weights/weights.pdf
+for (i in 1:66){
+  a <- wtd.chi.sq(data13$Group, data13[, i], weight=data13$Final_weights, mean1=FALSE)
+  wtd.chi.sq.results2[i, 1] <- a[1]
+  wtd.chi.sq.results2[i, 2] <- a[2]
+  wtd.chi.sq.results2[i, 3] <- a[3]
+  wtd.chi.sq.results2[i, 4] <- ifelse(a[3]<0.01, "***", ifelse(a[3]<0.05, "**", ifelse(a[3]<0.1, "*", "")))
+}
+wtd.chi.sq.results2$varname <- colnames(data11)[1:66]
+wtd.chi.sq.results2 <- wtd.chi.sq.results2[, c(5, 1:4)]
+wtd.chi.sq.results2
+
+
+wtd.chi.sq.results3 <- data.frame(Chisq3=as.numeric(), df3=as.integer(), p.value3=as.numeric(), sig3=as.character())
+wtd.chi.sq.results3$sig3 <- as.character(wtd.chi.sq.results3$sig3)
+# https://cran.r-project.org/web/packages/weights/weights.pdf
+for (i in 1:66){
+  a <- wtd.chi.sq(data14$Group, data14[, i], weight=data14$Final_weights, mean1=FALSE)
+  wtd.chi.sq.results3[i, 1] <- a[1]
+  wtd.chi.sq.results3[i, 2] <- a[2]
+  wtd.chi.sq.results3[i, 3] <- a[3]
+  wtd.chi.sq.results3[i, 4] <- ifelse(a[3]<0.01, "***", ifelse(a[3]<0.05, "**", ifelse(a[3]<0.1, "*", "")))
+}
+wtd.chi.sq.results3$varname <- colnames(data11)[1:66]
+wtd.chi.sq.results3 <- wtd.chi.sq.results3[, c(5, 1:4)]
+wtd.chi.sq.results3
+
+wtd.chi.sq.results <- merge(wtd.chi.sq.results1[, c(1, 5)], wtd.chi.sq.results2[, c(1, 5)], by.x="varname", by.y="varname")
+wtd.chi.sq.results <- merge(wtd.chi.sq.results, wtd.chi.sq.results3[, c(1, 5)], by.x="varname", by.y="varname")
+# because the original SPSS table was not accurately sorted by alphabetical order, 
+# there is inconsistency regarding the place of "J11k_noalternativecar" 
+
+colnames(wtd.chi.sq.results) <- c("statement", "IM-DM", "IM-GX", "DM-GX")
+
 write.csv(wtd.chi.sq.results, file="M:/Millennial_CA/17_JTRG_multimodal/JTRG_Multimodal/wtchisqresults.csv")
